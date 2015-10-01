@@ -221,7 +221,7 @@ namespace RSABigInt
 
             for (uint i=0; i<factor_base.Length; i++)
             {
-                uint j;
+                uint j = 0;
                 for (j = 0; (N % factor_base[i]) == 0; j++)
                     N /= factor_base[i];
                 factor_expos[i] = j;
@@ -253,7 +253,9 @@ namespace RSABigInt
 
             // Collect smooth numbers
             Factor_Base(N1);
-            Qx = new smooth_num[factor_base.Length*2];
+
+            uint N_smooths = (uint)(factor_base.Length * 1.1);
+            Qx = new smooth_num[N_smooths];
             Qx.Initialize();
             long k = 0;
             sw1.Restart();
@@ -261,7 +263,7 @@ namespace RSABigInt
             Task[] smooth = new Task[2];
             smooth[0] = Task.Run(() =>
             {
-                while (k < factor_base.Length*2)
+                while (k < N_smooths)
                 {
                     BigInteger sm = i * i - N1;
                     uint[] expo1 = GetPrimeFactors(sm);
@@ -274,7 +276,7 @@ namespace RSABigInt
                         Interlocked.Increment(ref k);
                         Console.Write(k.ToString() + " smooth numbers\r");
                     }
-                    i += _randObj.Next(3)+1;
+                    i++;
                     /*
                     sm = N1 - j * j;
                     expo1 = GetPrimeFactors(sm);
@@ -306,7 +308,7 @@ namespace RSABigInt
                         Interlocked.Increment(ref k);
                         Console.Write(k.ToString() + " smooth numbers\r");
                     }
-                    j -= _randObj.Next(3)+1;
+                    j--;
                 }
             });
 
@@ -331,7 +333,8 @@ namespace RSABigInt
 
             // prime number factors
             Factor_Base(N1);
-            Qx = new smooth_num[factor_base.Length*2];
+            uint N_smooths = (uint)(factor_base.Length * 1.1);
+            Qx = new smooth_num[N_smooths];
             Qx.Initialize();
             
             smooth_num[] Q1x = new smooth_num[ARRAY_SIZE];
@@ -341,7 +344,7 @@ namespace RSABigInt
             sw1.Restart();
 
             // Collect smooth numbers
-            while (k < factor_base.Length*2)
+            while (k < N_smooths)
             {
                 for (uint n = 0; n < Q1x.Length; n += 2)
                 {
@@ -606,12 +609,15 @@ namespace RSABigInt
 	        int cycle_size = 2, count = 1;
 	        BigInteger x = 2;
 	        BigInteger h = 1;
+            BigInteger x_;
  
 	        while (h == 1) {
 		        count = 1;
  
 		        while (count <= cycle_size && h == 1) {
-                    x = g(x, n, a);
+                    //x = g(x, n, a);
+                    x_ = x * x + a;
+                    x = BigInteger.Remainder(x_, n);
 			        //x = gx(Int64.Parse(x.ToString()), Int64.Parse(n.ToString()), a);
                     //Console.WriteLine("x = {0}", (x-x_fixed).ToString());
 			        count++;
@@ -693,15 +699,29 @@ namespace RSABigInt
             // 3149.7 s, fb: 899 primes, 1798 smooth numbers.
 
 
+            //N = BigInteger.Parse("43272494503935639032000984197");                      
+            // SmoothNumbers
+            // 2315.5 s, fb: 286 primes, 572 smooth numbers.
+            // 163.0 s,  fb:  610 primes
+            // 232.2 s,  fb: 642 primes, 706 smooth numbers.
+            // 149.5 s,  fb: 715 primes
+            // 165.3 s, fb: 740 primes
+            // 394.2 s, fb: 4814 primes
+            // 601.8 s, fb: 6075 primes
 
-            //Smooth_Numbers("43272494503935639032000984197");                      // 163.0 s,  fb:  610 primes         149.5 s,  fb: 715 primes          165.3 s, fb: 740 primes         394.2 s, fb: 4814 primes        601.8 s, fb: 6075 primes
-            //Smooth_Numbers2("43272494503935639032000984197");                      // 115.3 s, fb:  610 primes          111.0 s, fb: 715 primes           109.9 s, fb: 740 primes         254.0 s, fb: 4814 primes
+            // SmoothNumbers2
+            // 115.3 s, fb:  610 primes
+            // 111.0 s, fb: 715 primes
+            // 109.9 s, fb: 740 primes
+            // 254.0 s, fb: 4814 primes
 
             //Smooth_Numbers("990632981767960443643259");                           // 20.0 s,   fb: 154 primes         10.5 s, fb: 596 primes           16.4 s, fb: 1117 primes 
             //N = BigInteger.Parse("990632981767960443643259");                           //                             9.9 s, fb: 596 primes          14.8 s, fb: 1117 primes
 
             //N = BigInteger.Parse("462717344089999398416479");                           // 5.9 s,    fb: 269 primes
-            // 36.6 s, fb: 152 primes, 304 smooth numbers
+            // 34.1 s, fb: 126 primes, 252 smooth numbers
+            // 165.5 s, fb: 126 primes, 252 smooth numbers
+
 
             //N = BigInteger.Parse("3369738766071892021");
             //N = BigInteger.Parse("802846957519667581");
@@ -710,12 +730,12 @@ namespace RSABigInt
             double Temp = BigInteger.Log(N);
             uint nbrPrimes = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.5);
             //uint SieveLimit = (uint)Math.Exp(8.5 + 0.015 * Temp);
-            uint SieveLimit = (uint)Math.Pow(10.0, Math.Floor(Temp / 10.0));
+            uint SieveLimit = (uint)Math.Exp(Temp / 7.12);
 
-            prime_sieve(nbrPrimes);
+            prime_sieve(nbrPrimes * 4);
 
-            Smooth_Numbers(N);
-            //Smooth_Numbers2(N);
+            //Smooth_Numbers(N);
+            Smooth_Numbers2(N);
             Process_Matrix();
             //Dump_Matrix();
             Gauss_Elimination();
@@ -831,10 +851,10 @@ namespace RSABigInt
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
             //c.Mersenne2(23);
-            //c.Smooth_Nums_Test();
+            c.Smooth_Nums_Test();
             //c.RSA_Numbers();
             //c.ModPow_Misc_Stuff();
-            c.Pollard_Rho_Test();
+            //c.Pollard_Rho_Test();
 
             Console.Write("\nPress Enter: ");
             Console.ReadLine();
