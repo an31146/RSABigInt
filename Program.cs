@@ -361,10 +361,12 @@ namespace RSABigInt
             // prime number factors
             Factor_Base(N1);
             uint N_smooths = (uint)(factor_base.Length * 1.1);
-            Qx = new smooth_num[N_smooths+1];
+            if ( (N_smooths & 1) == 1)
+                N_smooths++;                // make it even
+            Qx = new smooth_num[N_smooths];
             Qx.Initialize();
             
-            smooth_num[] Q1x = new smooth_num[N_smooths+1];
+            smooth_num[] Q1x = new smooth_num[N_smooths];
             Q1x.Initialize();
 
             long k = 0;
@@ -373,15 +375,18 @@ namespace RSABigInt
             // Collect smooth numbers
             while (k < N_smooths)
             {
-                for (uint n = 0; n < Q1x.Length; n += 2)
+                uint n = 0;
+                while (n < Q1x.Length)
                 {
                     Q1x[n].Q_of_x = N1 - j * j;
                     Q1x[n].x = j;
                     j--;
-                    
-                    Q1x[n + 1].Q_of_x = i * i - N1;
-                    Q1x[n + 1].x = i;
+                    n++;
+
+                    Q1x[n].Q_of_x = i * i - N1;
+                    Q1x[n].x = i;
                     i++;
+                    n++;
                 }
 
                 CancellationTokenSource cancellationSource = new CancellationTokenSource();
@@ -698,9 +703,12 @@ namespace RSABigInt
         public void Smooth_Nums_Test(string S1)
         {
             BigInteger N;
-            //N = BigInteger.Parse("21818232425302600378616644247667406319");              
+            N = BigInteger.Parse("21818232425302600378616644247667406319");
             // 2495.8 s, 2620 primes
             // 7217.7 s, 2122 primes, 4244 smooth numbers
+            //Factor base: 1732 primes.
+            //Collected 1906 smooth numbers.
+            //Elapsed time: 1002.0 s
 
             //N = BigInteger.Parse("16780348553824466403143254714822486311526698791663230901013034295820739731481287491453090350078076622143");
             // 
@@ -717,7 +725,7 @@ namespace RSABigInt
             // 5531.2 s, 1086 primes, 2172 smooth numbers.         (command-line: Debug\RSABigInt.exe)
             // 5818.4 s, 947 primes, 1894 smooth numbers.          (command-line: Debug\RSABigInt.exe)
 
-            N = BigInteger.Parse("78029259347625822354842824158838188449");
+            //N = BigInteger.Parse("78029259347625822354842824158838188449");
             //N = BigInteger.Parse("3851667332709411289323864692105059");                 
             // 1528.2 s, 1801 primes         1617.0 s, 1018 primes        1409.1 s, 1018 primes
             //N = BigInteger.Parse("3851667332709411289323864692105059");
@@ -757,17 +765,23 @@ namespace RSABigInt
             //N = BigInteger.Parse("3369738766071892021");
             //N = BigInteger.Parse("802846957519667581");
             //N = BigInteger.Parse("12546257");
+            // this one will take HOURS!
             //N = BigInteger.Parse("2017075389938133575596113187311764342781574681");
 
             double Temp = BigInteger.Log(N);
-            uint sieve_max= (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.8);
-            //uint SieveLimit = (uint)Math.Exp(8.5 + 0.015 * Temp);
-            uint SieveLimit = (uint)Math.Exp(Temp / 7.12);
-
+            uint sieve_max= (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.53);
             prime_sieve(sieve_max);
+
+            //uint SieveLimit = (uint)Math.Exp(8.5 + 0.015 * Temp);
+            //uint SieveLimit = (uint)Math.Exp(Temp / 7.12);
+            //prime_sieve(SieveLimit);
 
             //Smooth_Numbers(N);
             Smooth_Numbers2(N);
+
+            Console.Write("Press Enter: ");
+            Console.ReadLine();
+
             Process_Matrix();
             //Dump_Matrix();
             Gauss_Elimination();
@@ -874,7 +888,7 @@ namespace RSABigInt
         {
             MyBigInteger_Class c = new MyBigInteger_Class();
 
-            Console.WriteLine("sqrt(2) = {0}\n", c.SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
+            //Console.WriteLine("sqrt(2) = {0}\n", c.SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
             int n = 3607;   // 1789;   // 3607;
             //Console.WriteLine("fact({1}) = {0}\n", c.Factorial(n).ToString(), n);
         
@@ -884,7 +898,7 @@ namespace RSABigInt
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
             //c.Mersenne2(23);
-            //c.Smooth_Nums_Test("");
+            c.Smooth_Nums_Test("");
             //c.RSA_Numbers();
             //c.ModPow_Misc_Stuff();
             //c.Pollard_Rho_Test();
