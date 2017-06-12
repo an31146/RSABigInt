@@ -43,7 +43,7 @@ namespace small_sieve
             for (i = 0; i < size; i++)
             {
                 j += data[addr_bytes[i]];
-                Console.Write("{0,8}", addr_bytes[i]);
+                //Console.Write("{0,8}", addr_bytes[i]);
             }
             return j;
         }
@@ -96,13 +96,13 @@ namespace small_sieve
             pc = 0;
             small_base = 0;
             i = 1000000;
-            while (small_base < 4000000)
+            while (small_base < 10000000)
             {
                 update_small_sieve();
                 j = (i - small_base) >> 4;
                 if (j > 4096)
                     j = 4096;
-                Console.WriteLine($"pc = {pc}");
+                //Console.WriteLine($"pc = {pc}");
                 pc += count_zero_bits(small_sieve, j);
                 if (small_base + (j << 4) == i)
                 {
