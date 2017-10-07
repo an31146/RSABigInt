@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace small_sieve
 {
@@ -17,7 +12,6 @@ namespace small_sieve
         //
         // count the number of zeros
         //
-
         static uint count_zero_bits(uint[] addr, uint size)
         {
             uint[] data = new uint[256];

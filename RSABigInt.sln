@@ -1,21 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSABigInt", "RSABigInt.csproj", "{7A112C30-44CA-4F90-B638-799F9E8209B3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{387F4789-7F69-4D0A-8B35-0D3AF8855978}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSABigInt", "RSABigInt.csproj", "{7A112C30-44CA-4F90-B638-799F9E8209B3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "small_sieve", "small_sieve\small_sieve.csproj", "{12B4687C-7048-4E2C-AF5E-B1808019D199}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "segmented_sieve", "segmented_sieve\segmented_sieve\segmented_sieve.csproj", "{7BB2F673-9F1E-48B0-B9C3-0FED9BDFBFA2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PLINQ_primes", "PLINQ_primes\PLINQ_primes.csproj", "{4898E383-2C40-4A48-B294-4B2F8F0CC3EC}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -29,8 +27,19 @@ Global
 		{12B4687C-7048-4E2C-AF5E-B1808019D199}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12B4687C-7048-4E2C-AF5E-B1808019D199}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12B4687C-7048-4E2C-AF5E-B1808019D199}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BB2F673-9F1E-48B0-B9C3-0FED9BDFBFA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BB2F673-9F1E-48B0-B9C3-0FED9BDFBFA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BB2F673-9F1E-48B0-B9C3-0FED9BDFBFA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BB2F673-9F1E-48B0-B9C3-0FED9BDFBFA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4898E383-2C40-4A48-B294-4B2F8F0CC3EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4898E383-2C40-4A48-B294-4B2F8F0CC3EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4898E383-2C40-4A48-B294-4B2F8F0CC3EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4898E383-2C40-4A48-B294-4B2F8F0CC3EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1C6FB582-F470-432D-98E3-B0179AA3C55E}
 	EndGlobalSection
 EndGlobal
