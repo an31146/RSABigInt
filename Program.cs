@@ -653,10 +653,10 @@ namespace RSABigInt
             WriteLine("ModPow time: {0} ms\n", sw1.ElapsedMilliseconds);                // ModPow time: 12453 ms
             double LogT2 = BigInteger.Log10(T2);
 
-            //WriteLine("sqrt(2) = {0}\n", c.SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
+            WriteLine("sqrt(2) = {0}\n", SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
             int n = 13017;  //7921;   // 1789;   // 3607;
-            //WriteLine("fact({1}) = {0}\n", c.Factorial(n).ToString(), n);
-            //WriteLine("fibonacci({1}) = {0}\n", c.Fibonacci(n).ToString(), n);
+            //WriteLine("fact({1}) = {0}\n", Factorial(n).ToString(), n);
+            //WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n).ToString(), n);
 
         }
 
@@ -798,6 +798,11 @@ namespace RSABigInt
             //Collected 4184 smooth numbers.
             //Elapsed time: 4142.7 s
 
+            //Factor base: 3804 primes.
+            //Collected 4184 smooth numbers.
+            //Elapsed time: 4314.1 s
+
+
 
             //N = BigInteger.Parse("3851667332709411289323864692105059");                 
             // 1528.2 s, 1801 primes         1617.0 s, 1018 primes        1409.1 s, 1018 primes
@@ -892,7 +897,7 @@ namespace RSABigInt
             Smooth_Numbers2(N);
 
             Write("Press Enter: ");
-            Console.ReadLine();
+            ReadLine();
 
             Process_Matrix();
             //Dump_Matrix();
@@ -1083,13 +1088,13 @@ namespace RSABigInt
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
             //c.Mersenne2(23);
-            c.Smooth_Nums_Test("");
+            //c.Smooth_Nums_Test("");
             //c.RSA_Numbers();
-            //c.ModPow_Misc_Stuff();
+            c.ModPow_Misc_Stuff();
             //c.Pollard_Rho_Test();
 
             Write("\nPress Enter: ");
-            Console.ReadLine();
+            ReadLine();
         }
     }   // class
 }   // namespace
