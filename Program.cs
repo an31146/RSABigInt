@@ -153,16 +153,18 @@ namespace RSABigInt
             BigInteger rem = BigInteger.Zero;
             BigInteger a = new BigInteger(2);
 
+            rand1 = BigInteger.Zero;
+            for (int i = 0; i < size; i++)
+            {
+                rand1 <<= 24;
+                rand1 += _randObj.Next();
+            }
+            rand1 |= 1;
+            rem = BigInteger.ModPow(a, rand1 - 1, rand1);
+
             while (!rem.IsOne)
             {
-                rand1 = BigInteger.Zero;
-                for (int i = 0; i < size; i++)
-                {
-                    rand1 <<= 24;
-                    rand1 += _randObj.Next();
-                }
-                rand1 |= 1;
-
+                rand1 += 2;
                 rem = BigInteger.ModPow(a, rand1 - 1, rand1);
             }
             return rand1;
@@ -512,7 +514,7 @@ namespace RSABigInt
 
         public void PrimeTriplet_Test()
         {
-            for (BigInteger X = PrimeTriplet(4); ; X += 2)
+            for (BigInteger X = PrimeTriplet(10); ; X += 2)
                 if (MillerRabin(X, 2) && MillerRabin(X + 6, 2))
                     if (MillerRabin(X + 2, 2))
                         WriteLine("{0}\n{1}\n{2}\n", X.ToString(), (X + 2).ToString(), (X + 6).ToString());
@@ -523,9 +525,34 @@ namespace RSABigInt
 
         public void TwinPrime_Test()
         {
-            for (BigInteger X = TwinPrime(12); ; X += 2)
-                if (MillerRabin(X, 2) && MillerRabin(X + 2, 2))
+            int f = 0;
+            BigInteger P = RandPrime(20);
+
+            P = BigInteger.Parse("143459829234103681454041418252081595766097129644542014413338193190146299888751764393735706481668312312813012300585846009123759436143773032850526021");
+
+            DateTime dt = DateTime.Now;
+            for (BigInteger X = P; DateTime.Now < dt.AddHours(1.0d); X += 2)
+            {
+                switch(f)
+                {
+                    case 0:
+                        Write("|\r");
+                        break;
+                    case 1:
+                        Write("/\r");
+                        break;
+                    case 2:
+                        Write("-\r");
+                        break;
+                    case 3:
+                        Write("\\\r");
+                        break;
+                }
+                f++; f %= 4;
+
+                if (MillerRabin(X, 3) && MillerRabin(X + 2, 3))
                     WriteLine("{0}\n{1}\n", X.ToString(), (X + 2).ToString());
+            }
         }
 
         public void Mersenne(int n)
@@ -653,10 +680,10 @@ namespace RSABigInt
             WriteLine("ModPow time: {0} ms\n", sw1.ElapsedMilliseconds);                // ModPow time: 12453 ms
             double LogT2 = BigInteger.Log10(T2);
 
-            WriteLine("sqrt(2) = {0}\n", SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
+            //WriteLine("sqrt(2) = {0}\n", c.SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
             int n = 13017;  //7921;   // 1789;   // 3607;
-            //WriteLine("fact({1}) = {0}\n", Factorial(n).ToString(), n);
-            //WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n).ToString(), n);
+            //WriteLine("fact({1}) = {0}\n", c.Factorial(n).ToString(), n);
+            //WriteLine("fibonacci({1}) = {0}\n", c.Fibonacci(n).ToString(), n);
 
         }
 
@@ -798,11 +825,6 @@ namespace RSABigInt
             //Collected 4184 smooth numbers.
             //Elapsed time: 4142.7 s
 
-            //Factor base: 3804 primes.
-            //Collected 4184 smooth numbers.
-            //Elapsed time: 4314.1 s
-
-
 
             //N = BigInteger.Parse("3851667332709411289323864692105059");                 
             // 1528.2 s, 1801 primes         1617.0 s, 1018 primes        1409.1 s, 1018 primes
@@ -897,7 +919,7 @@ namespace RSABigInt
             Smooth_Numbers2(N);
 
             Write("Press Enter: ");
-            ReadLine();
+            Console.ReadLine();
 
             Process_Matrix();
             //Dump_Matrix();
@@ -1085,16 +1107,16 @@ namespace RSABigInt
             Assembly assem = typeof(BigInteger).Assembly;
             BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
 
-            //c.TwinPrime_Test();
+            c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
             //c.Mersenne2(23);
             //c.Smooth_Nums_Test("");
             //c.RSA_Numbers();
-            c.ModPow_Misc_Stuff();
+            //c.ModPow_Misc_Stuff();
             //c.Pollard_Rho_Test();
 
             Write("\nPress Enter: ");
-            ReadLine();
+            Console.ReadLine();
         }
     }   // class
 }   // namespace
