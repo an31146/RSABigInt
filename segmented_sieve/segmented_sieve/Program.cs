@@ -68,15 +68,15 @@ namespace segmented_sieve
                 }
                 for (; n <= high; n += 2)
                     count += segment[n - low] ? 1 : 0;
-                //      if (segment[n - low])
-                //      {
-                //        //cout << setw(10) << n;
-                //        count++;
-                //        twin_prime_const *= 1.0d - 1.0d / (double)((n-1) * (n-1));
-                //      }  
+                    /*if (segment[n - low])
+                    {
+                        Console.WriteLine("{0,10}", n);
+                        count++;
+                        //twin_prime_const *= 1.0d - 1.0d / (double)((n - 1) * (n - 1));
+                    }*/
             }
 
-            Console.WriteLine("\n{0} primes found.", count);
+            Console.WriteLine("\n\n{0} primes found.", count);
             //cout << "twin prime constant: " << twin_prime_const << endl;
         }
         static void Main(string[] args)
