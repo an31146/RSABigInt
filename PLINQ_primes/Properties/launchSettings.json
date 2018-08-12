@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PLINQ_primes": {
+      "commandName": "Project",
+      "commandLineArgs": "100000000"
+    }
+  }
+}
