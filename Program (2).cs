@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
@@ -11,7 +10,7 @@ using static System.Console;
 
 namespace RSABigInt
 {
-#pragma warning disable IDE1006
+
     class MyBigInteger_Class
     {
         //const uint ARRAY_SIZE = 0x166e0e21;
@@ -154,18 +153,16 @@ namespace RSABigInt
             BigInteger rem = BigInteger.Zero;
             BigInteger a = new BigInteger(2);
 
-            rand1 = BigInteger.Zero;
-            for (int i = 0; i < size; i++)
-            {
-                rand1 <<= 24;
-                rand1 += _randObj.Next();
-            }
-            rand1 |= 1;
-            rem = BigInteger.ModPow(a, rand1 - 1, rand1);
-
             while (!rem.IsOne)
             {
-                rand1 += 2;
+                rand1 = BigInteger.Zero;
+                for (int i = 0; i < size; i++)
+                {
+                    rand1 <<= 24;
+                    rand1 += _randObj.Next();
+                }
+                rand1 |= 1;
+
                 rem = BigInteger.ModPow(a, rand1 - 1, rand1);
             }
             return rand1;
@@ -438,10 +435,9 @@ namespace RSABigInt
                                     Interlocked.Increment(ref k);
                                 }
                             }
-                            catch (IndexOutOfRangeException ex)
+                            catch (IndexOutOfRangeException e)
                             {
                                 loopState.Stop();
-                                WriteLine("Caught exception: " + ex.Message);
                             }
                         }
                 );
@@ -474,7 +470,7 @@ namespace RSABigInt
                 return -1;
         }
 
-        bool MillerRabin(BigInteger n, int k)
+        public bool MillerRabin(BigInteger n, int k)
         {
             int[] base_primes = 	{  2,   3,   5,   7,  11,  13,  17,  19,
 	                                  23,  29,  31,  37,  41,  43,  47,  53,
@@ -516,7 +512,7 @@ namespace RSABigInt
 
         public void PrimeTriplet_Test()
         {
-            for (BigInteger X = PrimeTriplet(10); ; X += 2)
+            for (BigInteger X = PrimeTriplet(4); ; X += 2)
                 if (MillerRabin(X, 2) && MillerRabin(X + 6, 2))
                     if (MillerRabin(X + 2, 2))
                         WriteLine("{0}\n{1}\n{2}\n", X.ToString(), (X + 2).ToString(), (X + 6).ToString());
@@ -525,68 +521,11 @@ namespace RSABigInt
                             WriteLine("{0}\n{1}\n{2}\n", X.ToString(), (X + 4).ToString(), (X + 6).ToString());
         }
 
-        public void print_time(TextWriter F)
-        {
-            DateTime dt = DateTime.Now;
-            string str_dt = String.Format("[{0} {1}]", dt.ToLongDateString(), dt.ToLongTimeString());
-            WriteLine("{0}", str_dt);
-            F.WriteLine(str_dt);
-        }
-
         public void TwinPrime_Test()
         {
-            int f = 0;
-            BigInteger P = RandPrime(20);
-
-            P = BigInteger.Parse("360319392839345637553135866536709551984512794123732758031872111180198922229304457776932421378054786897761488068678057699260620046812993786417078192201501646337");
-
-            try
-            {
-                FileStream F_TP = new FileStream(@".\twin_primes.txt", FileMode.Append);
-                using (StreamWriter writer = new StreamWriter(F_TP))
-                {
-                    DateTime dt = DateTime.Now;
-                    for (BigInteger X = P; DateTime.Now < dt.AddHours(4.0d); X += 2)
-                    {
-                        switch (f)
-                        {
-                            case 0:
-                                Write("[|]\r");
-                                break;
-                            case 1:
-                                Write("[/]\r");
-                                break;
-                            case 2:
-                                Write("[-]\r");
-                                break;
-                            case 3:
-                                Write("[\\]\r");
-                                break;
-                        }
-                        f++; f %= 4;
-
-                        if (MillerRabin(X, 3) && MillerRabin(X + 2, 3))
-                        {
-                            //WriteLine("[{0} {1}]", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString());
-                            print_time(writer);
-                            WriteLine("{0}\n{1}\n", X.ToString(), (X + 2).ToString());
-
-                            // output to file
-                            writer.WriteLine(X.ToString());
-                            writer.WriteLine((X + 2).ToString());
-                            writer.WriteLine();
-                            writer.FlushAsync();
-                        }
-                    }
-                }
-
-                F_TP.Close();
-            }
-            catch
-            {
-                WriteLine("File opening failed.\n");
-                return;
-            }
+            for (BigInteger X = TwinPrime(12); ; X += 2)
+                if (MillerRabin(X, 2) && MillerRabin(X + 2, 2))
+                    WriteLine("{0}\n{1}\n", X.ToString(), (X + 2).ToString());
         }
 
         public void Mersenne(int n)
@@ -714,10 +653,10 @@ namespace RSABigInt
             WriteLine("ModPow time: {0} ms\n", sw1.ElapsedMilliseconds);                // ModPow time: 12453 ms
             double LogT2 = BigInteger.Log10(T2);
 
-            //WriteLine("sqrt(2) = {0}\n", c.SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
-            //int n = 13017;  //7921;   // 1789;   // 3607;
-            //WriteLine("fact({1}) = {0}\n", c.Factorial(n).ToString(), n);
-            //WriteLine("fibonacci({1}) = {0}\n", c.Fibonacci(n).ToString(), n);
+            WriteLine("sqrt(2) = {0}\n", SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
+            int n = 13017;  //7921;   // 1789;   // 3607;
+            //WriteLine("fact({1}) = {0}\n", Factorial(n).ToString(), n);
+            //WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n).ToString(), n);
 
         }
 
@@ -849,7 +788,7 @@ namespace RSABigInt
             // 5818.4 s, 947 primes, 1894 smooth numbers.          (command-line: Debug\RSABigInt.exe)
 
 
-            //N = BigInteger.Parse("78029259347625822354842824158838188449");
+            N = BigInteger.Parse("78029259347625822354842824158838188449");
             //Factor base: 3804 primes.
             //Collected 4184 smooth numbers.
             //Elapsed time: 10628.0 s
@@ -858,6 +797,11 @@ namespace RSABigInt
             //Factor base: 3804 primes.
             //Collected 4184 smooth numbers.
             //Elapsed time: 4142.7 s
+
+            //Factor base: 3804 primes.
+            //Collected 4184 smooth numbers.
+            //Elapsed time: 4314.1 s
+
 
 
             //N = BigInteger.Parse("3851667332709411289323864692105059");                 
@@ -940,7 +884,6 @@ namespace RSABigInt
             // N = 2^2^7+1
             //N = BigInteger.Parse("340282366920938463463374607431768211457");
 
-            N = BigInteger.Parse(S1);
 
             double Temp = BigInteger.Log(N);
             uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.57);        // twiddle-factor
@@ -954,7 +897,7 @@ namespace RSABigInt
             Smooth_Numbers2(N);
 
             Write("Press Enter: ");
-            Console.ReadLine();
+            ReadLine();
 
             Process_Matrix();
             //Dump_Matrix();
@@ -1124,7 +1067,6 @@ namespace RSABigInt
             }
             catch (OperationCanceledException ex)
             {
-                WriteLine("Caught exception: {0}\n", ex.Message);
                 WriteLine("\nOperation cancelled, done.");
             }
             finally
@@ -1142,18 +1084,23 @@ namespace RSABigInt
 
             Assembly assem = typeof(BigInteger).Assembly;
             BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
+            p = BigInteger.Parse("25259169012307157843433874147768145978658753294355757732166299551231982395066458256188275751771248109374039634239844109015974932961038030409540793761304031725217702250285019469044235155701629738366291808760550217146589473816635922873478338266345888732405597536770725698056613106525071074074501");
+            if (c.MillerRabin(p, 3))
+            {
+                WriteLine("p is prime!");
+                return;
+            }
 
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
             //c.Mersenne2(23);
-            c.Smooth_Nums_Test("9251887165329150354056716315122396153271557067859755802728429989905317141127");
+            //c.Smooth_Nums_Test("");
             //c.RSA_Numbers();
-            //c.ModPow_Misc_Stuff();
+            c.ModPow_Misc_Stuff();
             //c.Pollard_Rho_Test();
 
             Write("\nPress Enter: ");
-            Console.ReadLine();
+            ReadLine();
         }
     }   // class
-#pragma warning restore IDE1006
 }   // namespace

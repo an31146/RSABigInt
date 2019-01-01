@@ -6,6 +6,7 @@ using System.Linq;
 
 using static System.Console;
 
+#pragma warning disable IDE1006
 namespace PLINQ_primes
 {
     public class Program
@@ -101,6 +102,7 @@ namespace PLINQ_primes
         }
     }
 }
+#pragma warning restore IDE1006
 
 /*
 Sun 09/03/2017 10:54:35
