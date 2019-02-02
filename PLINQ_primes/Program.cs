@@ -27,8 +27,7 @@ namespace PLINQ_primes
                     bits[j] = true;
             }
 
-            _primes = new List<int>();
-            _primes.Add(2);
+            _primes = new List<int> { 2 };
 
             for (j = 3; j <= S; j++)
                 if (!bits[j])
