@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define _DEBUG
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -11,25 +12,25 @@ using static System.Console;
 
 namespace RSABigInt
 {
-#pragma warning disable IDE1006
+#pragma warning disable IDE1006,IDE1005
     class MyBigInteger_Class
     {
-        //const uint ARRAY_SIZE = 0x166e0e21;
-        const uint ARRAY_SIZE = 0x10000000;
-        Random _randObj;
-        uint[] primes;               
-        uint[] factor_base;          //
-        uint[,] matrix;              // 2-dimensional matrix
+        //private const uint ARRAY_SIZE = 0x166e0e21;
+        private const uint ARRAY_SIZE = 0x10000000;
+        private Random _randObj;
+        private uint[] primes;               
+        private uint[] factor_base;          //
+        private uint[,] matrix;              // 2-dimensional matrix
 
-        struct smooth_num
+        private struct smooth_num
         {
             public BigInteger Q_of_x;
             public BigInteger x;
             public uint[] exponents;
         };
-        smooth_num[] Qx;
+        private smooth_num[] Qx;
 
-        Stopwatch sw1 = new Stopwatch();
+        private Stopwatch sw1 = new Stopwatch();
 
         /*
         public Random randObj
@@ -148,7 +149,7 @@ namespace RSABigInt
             }   // for
         }
 
-        BigInteger RandPrime(int size)
+        public BigInteger RandPrime(int size)
         {
             BigInteger rand1 = BigInteger.Zero;
             BigInteger rem = BigInteger.Zero;
@@ -171,7 +172,7 @@ namespace RSABigInt
             return rand1;
         }
 
-        BigInteger TwinPrime(int size)
+        public BigInteger TwinPrime(int size)
         {
             BigInteger twin = RandPrime(size);
             bool found = false;
@@ -184,7 +185,7 @@ namespace RSABigInt
             return twin;
         }
 
-        BigInteger PrimeTriplet(int size)
+        public BigInteger PrimeTriplet(int size)
         {
             BigInteger triple = RandPrime(size);
             bool found = false;
@@ -423,9 +424,11 @@ namespace RSABigInt
                 }
 
                 CancellationTokenSource cancellationSource = new CancellationTokenSource();
-                ParallelOptions options = new ParallelOptions();
-                options.CancellationToken = cancellationSource.Token;
-                Parallel.For(0, Q1x.Length, options, (ii, loopState) =>
+                ParallelOptions parallelOptions = new ParallelOptions()
+                {
+                    CancellationToken = cancellationSource.Token
+                };
+                Parallel.For(0, Q1x.Length, parallelOptions, (ii, loopState) =>
                         {
                             uint[] expo1 = GetPrimeFactors(Q1x[ii].Q_of_x);
                             try
@@ -456,23 +459,23 @@ namespace RSABigInt
                 strElapsed = String.Format("{0:F1} s", (float)sw1.ElapsedMilliseconds / 1000);
 
             WriteLine("Collected {0} smooth numbers.\nElapsed time: {1}\n", k, strElapsed);
-        }
+        }   // class MyBigInteger_Class
 
         int Legendre(BigInteger n, uint p)
-        {
-            BigInteger p1, l;
+            {
+                BigInteger p1, l;
     
-            // assumes p is an odd prime
-            p1 = (p-1)/2;
-            l = BigInteger.ModPow(n, p1, p);
+                // assumes p is an odd prime
+                p1 = (p-1)/2;
+                l = BigInteger.ModPow(n, p1, p);
     
-            if (l == 1)
-                return 1;
-            if (l == 0)
-                return 0;
-            else
-                return -1;
-        }
+                if (l == 1)
+                    return 1;
+                if (l == 0)
+                    return 0;
+                else
+                    return -1;
+            }
 
         bool MillerRabin(BigInteger n, int k)
         {
@@ -535,10 +538,11 @@ namespace RSABigInt
 
         public void TwinPrime_Test()
         {
-            int f = 0;
-            BigInteger P = RandPrime(20);
+            BigInteger P = RandPrime(2);
 
-            P = BigInteger.Parse("360319392839345637553135866536709551984512794123732758031872111180198922229304457776932421378054786897761488068678057699260620046812993786417078192201501646337");
+            //P = BigInteger.Parse("73691441265324451755454688016488227443216603115803452474404" +
+            //                     "38856224074297757065979116488802297563085196948625534183032" +
+            //                     "6479684230114053050216661580634474512203904229");
 
             try
             {
@@ -546,7 +550,10 @@ namespace RSABigInt
                 using (StreamWriter writer = new StreamWriter(F_TP))
                 {
                     DateTime dt = DateTime.Now;
-                    for (BigInteger X = P; DateTime.Now < dt.AddHours(4.0d); X += 2)
+                    int f = 0;
+
+                    //for (BigInteger X = P; DateTime.Now < dt.AddHours(4.0d); X += 2)
+                    for (BigInteger X = P; DateTime.Now < dt.AddMinutes(5.0d); X += 2)
                     {
                         switch (f)
                         {
@@ -940,10 +947,11 @@ namespace RSABigInt
             // N = 2^2^7+1
             //N = BigInteger.Parse("340282366920938463463374607431768211457");
 
+            // "9251887165329150354056716315122396153271557067859755802728429989905317141127"
             N = BigInteger.Parse(S1);
 
             double Temp = BigInteger.Log(N);
-            uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.57);        // twiddle-factor
+            uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.53);        // twiddle-factor
             prime_sieve(sieve_max);
 
             //uint SieveLimit = (uint)Math.Exp(8.5 + 0.015 * Temp);
@@ -953,8 +961,8 @@ namespace RSABigInt
             //Smooth_Numbers(N);
             Smooth_Numbers2(N);
 
-            Write("Press Enter: ");
-            Console.ReadLine();
+            //Write("Press Enter: ");
+            //Console.ReadLine();
 
             Process_Matrix();
             //Dump_Matrix();
@@ -988,7 +996,9 @@ namespace RSABigInt
                 {
                     if (matrix[i, p] > matrix[p, p])
                     {
-                        //WriteLine("Swap rows: {0} and {1}", p, i);
+#if _DEBUG
+                        WriteLine("Swap rows: {0} and {1}", p, i);
+#endif
                         row_swaps++;
                         for (uint j = 0; j < matrix.GetLength(1); j++)       // length of the 2nd dimension / number of columns
                         {
@@ -1000,7 +1010,9 @@ namespace RSABigInt
 
                     if (matrix[i, p] == 1)                                  // Add these rows if value in pivot column is 1
                     {
-                        //WriteLine("Add row: {0} to row: {1}", p, i);
+#if _DEBUG
+                        WriteLine("Add row: {0} to row: {1}", p, i);
+#endif
                         row_adds++;
                         for (int j = 0; j < matrix.GetLength(1); j++)
                         {
@@ -1014,9 +1026,10 @@ namespace RSABigInt
             if (sw1.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw1.ElapsedMilliseconds);
             else
-                strElapsed = String.Format("{0:F1} s", (float)sw1.ElapsedMilliseconds / 1000);
+                strElapsed = String.Format("{0:F1} s", (float)sw1.Elapsed.Milliseconds / 1000);
 
-            WriteLine("Row adds: {0}\nRow swaps: {1}\nElapsed time: {2}\n", row_adds, row_swaps, strElapsed);
+            string strValue = $"Row adds: {row_adds}\nRow swaps: {row_swaps}\nElapsed time: {strElapsed}\n";
+            WriteLine(strValue);
         }
 
         void Dump_Matrix()
@@ -1039,11 +1052,12 @@ namespace RSABigInt
         {
             //for (uint i = (uint)matrix.GetLength(0) - 1; i >= 0; i--)                  // number of rows
             CancellationTokenSource cancellationSource = new CancellationTokenSource();
-            ParallelOptions options = new ParallelOptions();
-
-            options.CancellationToken = cancellationSource.Token;
-            ParallelLoopResult res = Parallel.For(0, matrix.GetLength(0) - 1, options, (i, loopState) =>
-            //ParallelAlgorithms.SpeculativeFor(0, matrix.GetLength(0) - 1, options, (i, loopState) =>
+            ParallelOptions parallelOptions = new ParallelOptions()
+            {
+                CancellationToken = cancellationSource.Token
+            };
+            ParallelLoopResult res = Parallel.For(0, matrix.GetLength(0) - 1, parallelOptions, (i, loopState) =>
+            //ParallelAlgorithms.SpeculativeFor(0, matrix.GetLength(0) - 1, parallelOptions, (i, loopState) =>
             {
                 bool bNonNullFound = false;
                 for (uint j = 0; j < factor_base.Length; j++)
@@ -1142,17 +1156,22 @@ namespace RSABigInt
 
             Assembly assem = typeof(BigInteger).Assembly;
             BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
+            p = c.TwinPrime(2);
+            BigInteger q = c.TwinPrime(2);
+            BigInteger N = p * q;
+
+            WriteLine("{0} x {1} = {2}", p, q, N);
 
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
             //c.Mersenne2(23);
-            c.Smooth_Nums_Test("9251887165329150354056716315122396153271557067859755802728429989905317141127");
+            c.Smooth_Nums_Test(N.ToString());
             //c.RSA_Numbers();
             //c.ModPow_Misc_Stuff();
             //c.Pollard_Rho_Test();
 
             Write("\nPress Enter: ");
-            Console.ReadLine();
+            ReadLine();
         }
     }   // class
 #pragma warning restore IDE1006
