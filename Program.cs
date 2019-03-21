@@ -951,7 +951,7 @@ namespace RSABigInt
             N = BigInteger.Parse(S1);
 
             double Temp = BigInteger.Log(N);
-            uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.53);        // twiddle-factor
+            uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.55);        // twiddle-factor
             prime_sieve(sieve_max);
 
             //uint SieveLimit = (uint)Math.Exp(8.5 + 0.015 * Temp);

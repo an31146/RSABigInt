@@ -1,4 +1,4 @@
-﻿using System;
+﻿using static System.Console;
 
 namespace segmented_sieve_v3
 {
@@ -6,7 +6,7 @@ namespace segmented_sieve_v3
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            WriteLine("Hello World!");
         }
     }
 }
