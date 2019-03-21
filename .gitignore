@@ -187,12 +187,10 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-/.vs/config/applicationhost.config
-/.vs/RSABigInt/v15/sqlite3/storage.ide-wal
-/.vs/RSABigInt/v15/sqlite3/storage.ide-shm
-/.vs/RSABigInt/v15/sqlite3/db.lock
-/.vs/RSABigInt/v15/Server/sqlite3/storage.ide-wal
-/.vs/RSABigInt/v15/Server/sqlite3/storage.ide-shm
-/.vs/RSABigInt/DesignTimeBuild/.dtbcache
-/.vs/RSABigInt/v15/Browse.VC.db
 /Program (1).cs
+/Copy of Program (1).cs
+*.ide
+*.lock
+*.ide-wal
+*.dtbcache
+/.vs/RSABigInt/v15/Server/sqlite3/storage.ide-shm
