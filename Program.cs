@@ -225,7 +225,7 @@ namespace RSABigInt
             else
                 strElapsed = String.Format("{0:F1} s", (float)sw1.ElapsedMilliseconds / 1000);
 
-            WriteLine("\nSquareRoot({0})\nElapsed time: {1}\n", n.ToString(), strElapsed);
+            //WriteLine("\nSquareRoot({0})\nElapsed time: {1}\n", n.ToString(), strElapsed);
 
             return q;
         }
@@ -314,7 +314,7 @@ namespace RSABigInt
             // Collect smooth numbers
             Factor_Base(N1);
 
-            uint N_smooths = (uint)(factor_base.Length * 1.1);
+            uint N_smooths = (uint)(factor_base.Length * 1.01d);
             if ((N_smooths & 1) == 1)
                 N_smooths++;                // make it even
             Qx = new smooth_num[N_smooths];
@@ -958,8 +958,8 @@ namespace RSABigInt
             //uint SieveLimit = (uint)Math.Exp(Temp / 7.12);
             //prime_sieve(SieveLimit);
 
-            //Smooth_Numbers(N);
-            Smooth_Numbers2(N);
+            Smooth_Numbers(N);
+            //Smooth_Numbers2(N);
 
             //Write("Press Enter: ");
             //Console.ReadLine();
@@ -968,8 +968,8 @@ namespace RSABigInt
             //Dump_Matrix();
             Gauss_Elimination();
             //Dump_Matrix();
-            //Calculate_Factors(N);
-            Calculate_Factors_Task(N);
+            Calculate_Factors(N);
+            //Calculate_Factors_Task(N);
         }
 
         void Process_Matrix()
@@ -1042,6 +1042,7 @@ namespace RSABigInt
                 WriteLine();
             }
         }
+
         ParallelLoopResult function()
         {
             ParallelLoopResult para_res = new ParallelLoopResult();
@@ -1143,7 +1144,7 @@ namespace RSABigInt
             }
             finally
             {
-                //cancellationSource.Dispose();
+                cancellationSource.Dispose();
             }
         }
     }   // class MyBigInteger_Class

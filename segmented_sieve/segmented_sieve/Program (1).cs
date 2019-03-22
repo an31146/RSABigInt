@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using static System.Console;
+
 namespace segmented_sieve
 {
     class Program
@@ -68,15 +70,15 @@ namespace segmented_sieve
                 }
                 for (; n <= high; n += 2)
                     count += segment[n - low] ? 1 : 0;
-                //      if (segment[n - low])
-                //      {
-                //        //cout << setw(10) << n;
-                //        count++;
-                //        twin_prime_const *= 1.0d - 1.0d / (double)((n-1) * (n-1));
-                //      }  
+                    /*if (segment[n - low])
+                    {
+                        WriteLine("{0,10}", n);
+                        count++;
+                        //twin_prime_const *= 1.0d - 1.0d / (double)((n - 1) * (n - 1));
+                    }*/
             }
 
-            Console.WriteLine("\n{0} primes found.", count);
+            WriteLine("\n\n{0} primes found.", count);
             //cout << "twin prime constant: " << twin_prime_const << endl;
         }
         static void Main(string[] args)
@@ -96,9 +98,9 @@ namespace segmented_sieve
             segmented_sieve(limit, size);
             clock.Stop();
 
-            Console.WriteLine("sieve time: {0} ms.\n", clock.ElapsedMilliseconds);
-            Console.Write("Press Enter: ");
-            Console.ReadLine();
+            WriteLine("sieve time: {0} ms.\n", clock.ElapsedMilliseconds);
+            Write("Press Enter: ");
+            ReadLine();
         }
     }
 }
