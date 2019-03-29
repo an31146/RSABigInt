@@ -12,7 +12,7 @@ using static System.Console;
 
 namespace RSABigInt
 {
-#pragma warning disable IDE1006,IDE1005
+#pragma warning disable IDE1006,IDE1005,IDE1017
     class MyBigInteger_Class
     {
         //private const uint ARRAY_SIZE = 0x166e0e21;
@@ -158,7 +158,7 @@ namespace RSABigInt
             rand1 = BigInteger.Zero;
             for (int i = 0; i < size; i++)
             {
-                rand1 <<= 24;
+                rand1 <<= 16;
                 rand1 += _randObj.Next();
             }
             rand1 |= 1;
@@ -208,8 +208,9 @@ namespace RSABigInt
         public BigInteger SquareRoot(BigInteger n)
         {
             BigInteger d = BigInteger.One, q;
+            Stopwatch sw2 = new Stopwatch();
 
-            sw1.Restart();
+            sw2.Start();
             //Newton's Method
             do
             {
@@ -218,7 +219,7 @@ namespace RSABigInt
                 d = q;
             } while (q*q > n);
 
-            sw1.Stop();
+            sw2.Stop();
             string strElapsed;
             if (sw1.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw1.ElapsedMilliseconds);
@@ -959,7 +960,7 @@ namespace RSABigInt
             //prime_sieve(SieveLimit);
 
             Smooth_Numbers(N);
-            //Smooth_Numbers2(N);
+            Smooth_Numbers2(N);
 
             //Write("Press Enter: ");
             //Console.ReadLine();
@@ -1057,8 +1058,11 @@ namespace RSABigInt
             {
                 CancellationToken = cancellationSource.Token
             };
+
+            sw1.Restart();
+
+            //ParallelAlgorithms.SpeculativeFor(fromInclusive: 0, toExclusive: matrix.GetLength(0) - 1, options: parallelOptions, body: () => 
             ParallelLoopResult res = Parallel.For(0, matrix.GetLength(0) - 1, parallelOptions, (i, loopState) =>
-            //ParallelAlgorithms.SpeculativeFor(0, matrix.GetLength(0) - 1, parallelOptions, (i, loopState) =>
             {
                 bool bNonNullFound = false;
                 for (uint j = 0; j < factor_base.Length; j++)
@@ -1090,6 +1094,15 @@ namespace RSABigInt
                 }
 
             });
+
+            sw1.Stop();
+            string strElapsed;
+            if (sw1.ElapsedMilliseconds <= 1000)
+                strElapsed = String.Format("{0} ms", sw1.ElapsedMilliseconds);
+            else
+                strElapsed = String.Format("{0:F1} s", (float)sw1.Elapsed.Milliseconds / 1000);
+
+            WriteLine($"Calculate_Factors({N1})\nElapsed time: {strElapsed}\n");
         }
 
         void Calculate_Factors_Task(BigInteger N1)
@@ -1097,7 +1110,9 @@ namespace RSABigInt
             //for (uint i = (uint)matrix.GetLength(0) - 1; i >= 0; i--)                  // number of rows
             CancellationTokenSource cancellationSource = new CancellationTokenSource();
             Task[] sqrtTasks = new Task[matrix.GetLength(0)];
-            
+
+            sw1.Restart();
+
             for (int n = matrix.GetLength(0); n > 0; n--)
             {
                 int i = n - 1;
@@ -1146,6 +1161,15 @@ namespace RSABigInt
             {
                 cancellationSource.Dispose();
             }
+
+            sw1.Stop();
+            string strElapsed;
+            if (sw1.ElapsedMilliseconds <= 1000)
+                strElapsed = String.Format("{0} ms", sw1.ElapsedMilliseconds);
+            else
+                strElapsed = String.Format("{0:F1} s", (float)sw1.Elapsed.Milliseconds / 1000);
+
+            WriteLine($"Calculate_Factors_Task({N1})\nElapsed time: {strElapsed}\n");
         }
     }   // class MyBigInteger_Class
 
@@ -1157,8 +1181,8 @@ namespace RSABigInt
 
             Assembly assem = typeof(BigInteger).Assembly;
             BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
-            p = c.TwinPrime(2);
-            BigInteger q = c.TwinPrime(2);
+            p = c.TwinPrime(3);
+            BigInteger q = c.TwinPrime(3);
             BigInteger N = p * q;
 
             WriteLine("{0} x {1} = {2}", p, q, N);
@@ -1175,5 +1199,5 @@ namespace RSABigInt
             ReadLine();
         }
     }   // class
-#pragma warning restore IDE1006
+#pragma warning restore IDE1006,IDE1005,IDE1017
 }   // namespace

@@ -12,7 +12,7 @@ namespace PLINQ_primes
     public class Program
     {
         private static BitArray prime_bits;
-        const int LIMIT = 12000000;
+        const int LIMIT = 10000000;
         private static List<int> _primes;
 
         static void sieve(int S)
