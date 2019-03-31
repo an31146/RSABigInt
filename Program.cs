@@ -395,7 +395,7 @@ namespace RSABigInt
 
             // prime number factors
             Factor_Base(N1);
-            uint N_smooths = (uint)(factor_base.Length * 1.1);
+            uint N_smooths = (uint)(factor_base.Length * 1.01d);
             if ( (N_smooths & 1) == 1)
                 N_smooths++;                // make it even
             Qx = new smooth_num[N_smooths];
@@ -959,7 +959,9 @@ namespace RSABigInt
             //uint SieveLimit = (uint)Math.Exp(Temp / 7.12);
             //prime_sieve(SieveLimit);
 
-            Smooth_Numbers(N);
+            // original Smooth_Numbers only uses 2 threads (Tasks)!
+            //Smooth_Numbers(N);
+            // Parallel_For implementation
             Smooth_Numbers2(N);
 
             //Write("Press Enter: ");
