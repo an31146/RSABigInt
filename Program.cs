@@ -150,25 +150,37 @@ namespace RSABigInt
 
         public BigInteger RandPrime(int size)
         {
-            BigInteger rand1 = BigInteger.Zero;
+            BigInteger rnd = BigInteger.Zero;
             BigInteger rem = BigInteger.Zero;
             BigInteger a = new BigInteger(2);
+            Stopwatch sw = new Stopwatch();
 
-            rand1 = BigInteger.Zero;
+            sw.Start();
+            rnd = BigInteger.Zero;
             for (int i = 0; i < size; i++)
             {
-                rand1 <<= 16;
-                rand1 += _randObj.Next();
+                rnd <<= 16;
+                rnd += _randObj.Next();
             }
-            rand1 |= 1;
-            rem = BigInteger.ModPow(a, rand1 - 1, rand1);
+            rnd |= 1;
+            rem = BigInteger.ModPow(a, rnd - 1, rnd);
 
             while (!rem.IsOne)
             {
-                rand1 += 2;
-                rem = BigInteger.ModPow(a, rand1 - 1, rand1);
+                rnd += 2;
+                rem = BigInteger.ModPow(a, rnd - 1, rnd);
             }
-            return rand1;
+            sw.Stop();
+
+            string strElapsed;
+            if (sw.ElapsedMilliseconds <= 1000)
+                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
+            else
+                strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
+
+            WriteLine($"RandPrime({size})\nElapsed time: {strElapsed}\n");
+
+            return rnd;
         }
 
         public BigInteger TwinPrime(int size)
@@ -1030,6 +1042,7 @@ namespace RSABigInt
         public void Smooth_Nums_Test(string S1)
         {
             BigInteger N;
+            #region _historical_timings
             //N = BigInteger.Parse("21818232425302600378616644247667406319");
             // 2495.8 s, 2620 primes
             // 7217.7 s, 2122 primes, 4244 smooth numbers
@@ -1171,10 +1184,11 @@ namespace RSABigInt
             //N = BigInteger.Parse("340282366920938463463374607431768211457");
 
             // "9251887165329150354056716315122396153271557067859755802728429989905317141127"
+            #endregion
             N = BigInteger.Parse(S1);
 
             double Temp = BigInteger.Log(N);
-            uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.55);        // twiddle-factor
+            uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.6);        // twiddle-factor
             prime_sieve(sieve_max);
 
             //uint SieveLimit = (uint)Math.Exp(8.5 + 0.015 * Temp);
@@ -1193,8 +1207,8 @@ namespace RSABigInt
             //Dump_Matrix();
             Gauss_Elimination();
             //Dump_Matrix();
-            //Calculate_Factors(N);
-            Calculate_Factors_Task(N);
+            Calculate_Factors(N);
+            //Calculate_Factors_Task(N);
         }
 
     }   // class MyBigInteger_Class
@@ -1205,13 +1219,14 @@ namespace RSABigInt
         {
             MyBigInteger_Class c = new MyBigInteger_Class();
 
-            Assembly assem = typeof(BigInteger).Assembly;
-            BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
-            p = c.TwinPrime(2);
-            BigInteger q = c.TwinPrime(2);
+            //Assembly assem = typeof(BigInteger).Assembly;
+            //BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
+
+            BigInteger p = c.RandPrime(3);
+            BigInteger q = c.RandPrime(3);
             BigInteger N = p * q;
 
-            WriteLine("{0} x {1} = {2}", p, q, N);
+            WriteLine($"{p} x {q} = {N}");
 
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
