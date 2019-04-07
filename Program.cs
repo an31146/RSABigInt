@@ -914,6 +914,7 @@ namespace RSABigInt
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
+            DateTime dt0 = DateTime.Now;
 
             //ParallelAlgorithms.SpeculativeFor(fromInclusive: 0, toExclusive: matrix.GetLength(0) - 1, options: parallelOptions, body: () => 
             try
@@ -944,12 +945,12 @@ namespace RSABigInt
                         {
                             BigInteger Q = N1 / P;
                             WriteLine("\nFactors: {0}, {1}\n", P.ToString(), Q.ToString());
-                            //loopState.Stop();
+                            loopState.Stop();
                             cancellationSource.Cancel();
                         }
                     }
 
-                });     // ParallelFor(...)
+                } );     // ParallelFor(...)
             }
             catch (OperationCanceledException ex)
             {
@@ -961,6 +962,7 @@ namespace RSABigInt
                 cancellationSource.Dispose();
             }
 
+            DateTime dt1 = DateTime.Now;
             sw.Stop();
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
@@ -968,7 +970,8 @@ namespace RSABigInt
             else
                 strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
 
-            WriteLine($"Calculate_Factors({N1})\nElapsed time: {strElapsed}\n");
+            WriteLine($"Calculate_Factors({N1})\nElapsed time: {strElapsed}");
+            WriteLine($"dt1 - dt0 = {dt1.Subtract(dt0).Seconds} s\n");
         }
 
         void Calculate_Factors_Task(BigInteger N1)
