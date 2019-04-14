@@ -10,7 +10,7 @@ using System.Threading.Algorithms;
 
 using static System.Console;
 
-#pragma warning disable IDE1006,IDE1005,IDE1017
+#pragma warning disable IDE1006,IDE1005,IDE1017,CS0219
 namespace RSABigInt
 {
     class MyBigInteger_Class
@@ -465,7 +465,7 @@ namespace RSABigInt
                             }
                         }
                 );
-                Write(k.ToString() + " smooth numbers\r");
+                Write("{0} smooth numbers\r", k);
             }   // while (k < factor_base.Length) 
 
             sw.Stop();
@@ -827,14 +827,26 @@ namespace RSABigInt
 
         void Process_Matrix()
         {
-            matrix = new uint[factor_base.Length*2, factor_base.Length*3];
+            Stopwatch sw2 = new Stopwatch();
+            sw2.Start();
 
+            matrix = new uint[factor_base.Length*2, factor_base.Length*3];
             for (uint i = 0; i < Qx.Length; i++)
             {
                 for (uint j = 0; j < Qx[i].exponents.Length; j++)
                     matrix[i, j] = Qx[i].exponents[j] & 1;          // Transpose values as well: rows become the prime exponents mod 2
                 matrix[i, Qx[i].exponents.Length + i] = 1;          // set identity column value = 1
             }
+
+            sw2.Stop();
+            string strElapsed;
+            if (sw2.ElapsedMilliseconds <= 1000)
+                strElapsed = String.Format("{0} ms", sw2.ElapsedMilliseconds);
+            else
+                strElapsed = String.Format("{0:F1} s", (float)sw2.Elapsed.Milliseconds / 1000);
+
+            string strValue = $"Process_Matrix() Elapsed time: {strElapsed}\n";
+            WriteLine(strValue);
         }
 
         void Gauss_Elimination()
@@ -1244,4 +1256,4 @@ namespace RSABigInt
         }
     }   // class
 }   // namespace
-#pragma warning restore IDE1006, IDE1005, IDE1017
+#pragma warning restore IDE1006,IDE1005,IDE1017,CS0219
