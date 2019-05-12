@@ -15,9 +15,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PLINQ_primes", "PLINQ_prime
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "segmented_sieve_v2", "segmented_sieve\segmented_sieve_v2\segmented_sieve_v2.csproj", "{6A256A5D-7177-4184-9BAB-B5D80F4C16E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "segmented_sieve_v3", "segmented_sieve\segmented_sieve_v3\segmented_sieve_v3.csproj", "{DEB54E70-AC07-429F-883F-1BB49A387561}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "segmented_sieve_v3", "segmented_sieve\segmented_sieve_v3\segmented_sieve_v3.csproj", "{DEB54E70-AC07-429F-883F-1BB49A387561}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

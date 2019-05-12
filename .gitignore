@@ -195,3 +195,4 @@ ModelManifest.xml
 *.dtbcache
 /.vs/RSABigInt/v15/Server/sqlite3/storage.ide-shm
 .vs/
+/segmented_sieve/segmented_sieve_v2/Report20190510-1230.diagsession
