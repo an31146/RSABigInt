@@ -1,7 +1,5 @@
 ﻿using System;
 
-#pragma warning disable CS0219
-#pragma warning disable IDE1006 // Naming Styles
 namespace small_sieve
 {
     class Program
@@ -10,7 +8,6 @@ namespace small_sieve
         static uint[] small_primes = new uint[number_of_small_primes];
         static uint[] small_sieve = new uint[1024];
         static uint small_base;
-
 
         //
         // count the number of zeros
@@ -88,12 +85,12 @@ namespace small_sieve
         }
         static void test_small_sieve()
         {
-            uint pc, i, j, incr;
+            uint pc, i, j;
 
             pc = 0;
             small_base = 0;
-            i = incr = 10000000;
-            while (small_base < 1000000000)
+            i = 1000000;
+            while (small_base < 10000000)
             {
                 update_small_sieve();
                 j = (i - small_base) >> 4;
@@ -103,8 +100,8 @@ namespace small_sieve
                 pc += count_zero_bits(small_sieve, j);
                 if (small_base + (j << 4) == i)
                 {
-                    Console.WriteLine("{0,10} {1}", i, pc);
-                    i += incr;
+                    Console.WriteLine("{0,9} {1}", i, pc);
+                    i += 1000000;
                 }
                 if (j < 4096)
                     pc += count_zero_bits(small_sieve, 4096 - j);

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using static System.Console;
 
-#pragma warning disable IDE1006,IDE0017
 namespace segmented_sieve_v2
 {
     class Program
@@ -104,4 +103,3 @@ namespace segmented_sieve_v2
         }
     }
 }
-#pragma warning restore IDE1006, IDE0017
