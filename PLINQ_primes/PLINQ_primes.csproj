@@ -5,15 +5,13 @@
     <AssemblyName>PLINQ_primes</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>PLINQ_primes</PackageId>
-    <RuntimeFrameworkVersion>2.2.0</RuntimeFrameworkVersion>
+    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>PLINQ_primes.pfx.snk</AssemblyOriginatorKeyFile>
     <Version>1.2.0</Version>
-    <ApplicationIcon />
-    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>

@@ -66,7 +66,7 @@ namespace segmented_sieve_v2
                         is_prime[i] = false;
                 }
             });
-            WriteLine();
+            //WriteLine();
 
             Parallel.For(sqrt, limit, (int i) =>
             //for (int i = sqrt; i < limit; i++)
