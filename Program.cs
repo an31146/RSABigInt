@@ -171,7 +171,7 @@ namespace RSABigInt
                 rem = BigInteger.ModPow(a, rnd - 1, rnd);
             }
             sw.Stop();
-
+#if DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -179,7 +179,7 @@ namespace RSABigInt
                 strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
 
             WriteLine($"RandPrime({size})\nElapsed time: {strElapsed}\n");
-
+#endif
             return rnd;
         }
 
@@ -218,28 +218,65 @@ namespace RSABigInt
 
         public BigInteger SquareRoot(BigInteger n)
         {
-            BigInteger d = BigInteger.One, q;
+            BigInteger d = BigInteger.One, q, _q;
             Stopwatch sw2 = new Stopwatch();
+            bool bTestRoot = true;
 
             sw2.Start();
             //Newton's Method
             do
             {
                 q = n / d + d;
-                q /= 2;
+                _q = q;
+                q >>= 1;
                 d = q;
-            } while (q*q > n);
-
+                bTestRoot = q * q > n;
+            } while (bTestRoot);
             sw2.Stop();
+#if DEBUG
             string strElapsed;
             if (sw2.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw2.ElapsedMilliseconds);
             else
                 strElapsed = String.Format("{0:F1} s", (float)sw2.ElapsedMilliseconds / 1000);
 
-            //WriteLine("\nSquareRoot({0})\nElapsed time: {1}\n", n.ToString(), strElapsed);
-
+            WriteLine($"\nSquareRoot({n})\nElapsed time: {strElapsed}\n");
+#endif
             return q;
+        }
+
+        // Why is this function 3 times(!) quick than the one above?
+        public static BigInteger Sqrt(BigInteger x)
+        {
+            BigInteger div = BigInteger.One;
+            div = BigInteger.Add(div, BigInteger.One);
+            BigInteger TWO = new BigInteger(2);
+            BigInteger div2 = div, y;
+            Stopwatch sw = new Stopwatch();
+
+            // Loop until we hit the same value twice in a row, or wind
+            // up alternating.
+            sw.Start();
+            while (true)
+            {
+                y = BigInteger.Add(div, BigInteger.Divide(x, div));
+                y >>= 1;
+                if (y.Equals(div) || y.Equals(div2))
+                    break;
+                div2 = div;
+                div = y;
+            }
+            sw.Stop();
+#if DEBUG
+            string strElapsed;
+            if (sw.ElapsedMilliseconds <= 1000)
+                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
+            else
+                strElapsed = String.Format("{0:F1} s", sw.Elapsed.TotalSeconds);
+
+            WriteLine($"\nSquareRoot({y})\nElapsed time: {strElapsed}\n");
+#endif
+            return y;
         }
 
         public BigInteger Factorial(int n)
@@ -318,165 +355,6 @@ namespace RSABigInt
             Array.Resize(ref factor_base, j);
             WriteLine("Factor base: {0} primes.\n", j);
         }
-
-        public void Smooth_Numbers(BigInteger N1)
-        {
-            BigInteger sqrt_N1 = SquareRoot(N1);
-            BigInteger i = sqrt_N1 + 1;
-            BigInteger j = sqrt_N1 - 1;
-
-            // Collect smooth numbers
-            Factor_Base(N1);
-
-            uint N_smooths = (uint)(factor_base.Length * 1.01d);
-            if ((N_smooths & 1) == 1)
-                N_smooths++;                // make it even
-            Qx = new smooth_num[N_smooths];
-            Qx.Initialize();
-            long k = -1;
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            Task[] smooth = new Task[2];
-            smooth[0] = Task.Run(() =>
-            {
-                while (k < N_smooths-1)
-                {
-                    BigInteger sm = i * i - N1;
-                    uint[] expo1 = GetPrimeFactors(sm);
-                    if (expo1 != null)
-                    {
-                        Interlocked.Increment(ref k); 
-                        Qx[k].Q_of_x = sm;
-                        Qx[k].x = i;
-                        Qx[k].exponents = expo1;
-
-                        Write(k.ToString() + " smooth numbers\r");
-                    }
-                    i++;
-                    /*
-                    sm = N1 - j * j;
-                    expo1 = GetPrimeFactors(sm);
-                    if (expo1 != null)
-                    {
-                        Qx[k].Q_of_x = sm;
-                        Qx[k].x = j;
-                        Qx[k].exponents = expo1;
-                        Interlocked.Increment(ref k);
-                        Write(k.ToString() + " smooth numbers\r");
-                    }
-                    j--;
-                     */ 
-                }
-            });
-
-            smooth[1] = Task.Run(() =>
-            {
-                while (k < N_smooths-1)
-                {
-                    BigInteger sm = N1 - j * j;
-                    uint[] expo1 = GetPrimeFactors(sm);
-                    if (expo1 != null)
-                    {
-                        Interlocked.Increment(ref k); 
-                        Qx[k].Q_of_x = sm;
-                        Qx[k].x = j;
-                        Qx[k].exponents = expo1;
-                        Write(k.ToString() + " smooth numbers\r");
-                    }
-                    j--;
-                }
-            });
-
-            Task.WaitAll(smooth);
-            
-            sw.Stop();
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
-            
-            WriteLine("Collected {0} smooth numbers.\nElapsed time: {1}\n", k, strElapsed);
-            //WriteLine("{0}\t{1}", i - sqrt_N1, sqrt_N1 - j);
-        }
-
-        public void Smooth_Numbers2(BigInteger N1)
-        {
-            BigInteger sqrt_N1 = SquareRoot(N1);
-            BigInteger i = sqrt_N1 + 1;
-            BigInteger j = sqrt_N1 - 1;
-
-            // prime number factors
-            Factor_Base(N1);
-            uint N_smooths = (uint)(factor_base.Length * 1.01d);
-            if ((N_smooths & 1) == 1)
-                N_smooths++;                // make it even
-            Qx = new smooth_num[N_smooths];
-            Qx.Initialize();
-
-            smooth_num[] Q1x = new smooth_num[N_smooths];
-            Q1x.Initialize();
-
-            long k = 0;
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            // Collect smooth numbers
-            while (k < N_smooths)
-            {
-                uint n = 0;
-                while (n < Q1x.Length)
-                {
-                    Q1x[n].Q_of_x = N1 - j * j;
-                    Q1x[n].x = j;
-                    j--;
-                    n++;
-
-                    Q1x[n].Q_of_x = i * i - N1;
-                    Q1x[n].x = i;
-                    i++;
-                    n++;
-                }
-
-                CancellationTokenSource cancellationSource = new CancellationTokenSource();
-                ParallelOptions parallelOptions = new ParallelOptions()
-                {
-                    CancellationToken = cancellationSource.Token
-                };
-                Parallel.For(0, Q1x.Length, parallelOptions, (ii, loopState) =>
-                        {
-                            uint[] expo1 = GetPrimeFactors(Q1x[ii].Q_of_x);
-                            try
-                            {
-                                if (expo1 != null)
-                                {
-                                    Qx[k].Q_of_x = Q1x[ii].Q_of_x;      // save the smooth number 
-                                    Qx[k].x = Q1x[ii].x;                // save the square root
-                                    Qx[k].exponents = expo1;            // save the prime exponents
-                                    Interlocked.Increment(ref k);
-                                }
-                            }
-                            catch (IndexOutOfRangeException ex)
-                            {
-                                loopState.Stop();
-                                WriteLine("Caught exception: " + ex.Message);
-                            }
-                        }
-                );
-                Write("{0} smooth numbers\r", k);
-            }   // while (k < factor_base.Length) 
-
-            sw.Stop();
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
-
-            WriteLine("Collected {0} smooth numbers.\nElapsed time: {1}\n", k, strElapsed);
-        }   // class MyBigInteger_Class
 
         int Legendre(BigInteger n, uint p)
             {
@@ -724,7 +602,7 @@ namespace RSABigInt
         {
             BigInteger N = RandPrime(7);
             double Temp = BigInteger.Log10(N);
-            int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.318);
+            int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.618);
             BigInteger T1 = BigInteger.Pow(new BigInteger(2), 1048576);         // 315653 digit number!
             T1 = (new BigInteger(1) << 9689) - 1;
             double LogT1 = BigInteger.Log10(T1);
@@ -735,16 +613,21 @@ namespace RSABigInt
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
-
             BigInteger T2 = BigInteger.ModPow(new BigInteger(13), T1 - 1, T1);
             sw.Stop();
             WriteLine("ModPow time: {0} ms\n", sw.ElapsedMilliseconds);                // ModPow time: 12453 ms
-            double LogT2 = BigInteger.Log10(T2);
 
-            //WriteLine("sqrt(2) = {0}\n", c.SquareRoot(BigInteger.Parse("2" + new String('0', 10000))));
+            double LogT2 = BigInteger.Log10(T2);
+            string strNormalizedIntegerTwo = "2" + new String('0', 100000);
+
+            // SquareRoot(2e10000)
+            SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
+            // Sqrt(2e10000)
+            Sqrt(BigInteger.Parse(strNormalizedIntegerTwo));
+            
             //int n = 13017;  //7921;   // 1789;   // 3607;
-            //WriteLine("fact({1}) = {0}\n", c.Factorial(n).ToString(), n);
-            //WriteLine("fibonacci({1}) = {0}\n", c.Fibonacci(n).ToString(), n);
+            //WriteLine("fact({1}) = {0}\n", Factorial(n).ToString(), n);
+            //WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n).ToString(), n);
 
         }
 
@@ -831,6 +714,7 @@ namespace RSABigInt
             sw2.Start();
 
             matrix = new uint[factor_base.Length*2, factor_base.Length*3];
+            // TO-DO: Parallelize the outer loop?
             for (uint i = 0; i < Qx.Length; i++)
             {
                 for (uint j = 0; j < Qx[i].exponents.Length; j++)
@@ -854,7 +738,8 @@ namespace RSABigInt
             uint row_adds = 0, row_swaps = 0;
             Stopwatch sw2 = new Stopwatch();
 
-            sw2.Start(); 
+            sw2.Start();
+            // TO-DO: Parallelize the loops!
             for (uint p = 0; p < matrix.GetLength(0); p++)                  // number of rows
             {
                 // find pivot row and swap 
@@ -888,6 +773,7 @@ namespace RSABigInt
                 } // for i
             } // for p
             sw2.Stop();
+#if DEBUG
             string strElapsed;
             if (sw2.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw2.ElapsedMilliseconds);
@@ -896,6 +782,7 @@ namespace RSABigInt
 
             string strValue = $"Row adds: {row_adds}\nRow swaps: {row_swaps}\nElapsed time: {strElapsed}\n";
             WriteLine(strValue);
+#endif
         }
 
         void Dump_Matrix()
@@ -951,7 +838,7 @@ namespace RSABigInt
                                 x *= Qx[j - factor_base.Length].x;
                                 y *= Qx[j - factor_base.Length].Q_of_x;
                             }
-                        y = x - SquareRoot(y);
+                        y = x - Sqrt(y);
                         BigInteger P = BigInteger.GreatestCommonDivisor(N1, y);
                         if (P != 1 && P != N1)
                         {
@@ -1053,6 +940,165 @@ namespace RSABigInt
 
             WriteLine($"Calculate_Factors_Task({N1})\nElapsed time: {strElapsed}\n");
         }
+
+        public void Smooth_Numbers(BigInteger N1)
+        {
+            BigInteger sqrt_N1 = SquareRoot(N1);
+            BigInteger i = sqrt_N1 + 1;
+            BigInteger j = sqrt_N1 - 1;
+
+            // Collect smooth numbers
+            Factor_Base(N1);
+
+            uint N_smooths = (uint)(factor_base.Length * 1.01d);
+            if ((N_smooths & 1) == 1)
+                N_smooths++;                // make it even
+            Qx = new smooth_num[N_smooths];
+            Qx.Initialize();
+            long k = -1;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            Task[] smooth = new Task[2];
+            smooth[0] = Task.Run(() =>
+            {
+                while (k < N_smooths - 1)
+                {
+                    BigInteger sm = i * i - N1;
+                    uint[] expo1 = GetPrimeFactors(sm);
+                    if (expo1 != null)
+                    {
+                        Interlocked.Increment(ref k);
+                        Qx[k].Q_of_x = sm;
+                        Qx[k].x = i;
+                        Qx[k].exponents = expo1;
+
+                        Write(k.ToString() + " smooth numbers\r");
+                    }
+                    i++;
+                    /*
+                    sm = N1 - j * j;
+                    expo1 = GetPrimeFactors(sm);
+                    if (expo1 != null)
+                    {
+                        Qx[k].Q_of_x = sm;
+                        Qx[k].x = j;
+                        Qx[k].exponents = expo1;
+                        Interlocked.Increment(ref k);
+                        Write(k.ToString() + " smooth numbers\r");
+                    }
+                    j--;
+                     */
+                }
+            });
+
+            smooth[1] = Task.Run(() =>
+            {
+                while (k < N_smooths - 1)
+                {
+                    BigInteger sm = N1 - j * j;
+                    uint[] expo1 = GetPrimeFactors(sm);
+                    if (expo1 != null)
+                    {
+                        Interlocked.Increment(ref k);
+                        Qx[k].Q_of_x = sm;
+                        Qx[k].x = j;
+                        Qx[k].exponents = expo1;
+                        Write(k.ToString() + " smooth numbers\r");
+                    }
+                    j--;
+                }
+            });
+
+            Task.WaitAll(smooth);
+
+            sw.Stop();
+            string strElapsed;
+            if (sw.ElapsedMilliseconds <= 1000)
+                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
+            else
+                strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
+
+            WriteLine("Collected {0} smooth numbers.\nElapsed time: {1}\n", k, strElapsed);
+            //WriteLine("{0}\t{1}", i - sqrt_N1, sqrt_N1 - j);
+        }
+
+        public void Smooth_Numbers2(BigInteger N1)
+        {
+            BigInteger sqrt_N1 = Sqrt(N1);
+            BigInteger i = sqrt_N1 + 1;
+            BigInteger j = sqrt_N1 - 1;
+
+            // prime number factors
+            Factor_Base(N1);
+            uint N_smooths = (uint)(factor_base.Length * 1.01d);
+            if ((N_smooths & 1) == 1)
+                N_smooths++;                // make it even
+            Qx = new smooth_num[N_smooths];
+            Qx.Initialize();
+
+            smooth_num[] Q1x = new smooth_num[N_smooths];
+            Q1x.Initialize();
+
+            long k = 0;
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            // Collect smooth numbers
+            while (k < N_smooths)
+            {
+                uint n = 0;
+                while (n < Q1x.Length)
+                {
+                    Q1x[n].Q_of_x = N1 - j * j;
+                    Q1x[n].x = j;
+                    j--;
+                    n++;
+
+                    Q1x[n].Q_of_x = i * i - N1;
+                    Q1x[n].x = i;
+                    i++;
+                    n++;
+                }
+
+                CancellationTokenSource cancellationSource = new CancellationTokenSource();
+                ParallelOptions parallelOptions = new ParallelOptions()
+                {
+                    CancellationToken = cancellationSource.Token
+                };
+                Parallel.For(0, Q1x.Length, parallelOptions, (ii, loopState) =>
+                {
+                    uint[] expo1 = GetPrimeFactors(Q1x[ii].Q_of_x);
+                    try
+                    {
+                        if (expo1 != null)
+                        {
+                            Qx[k].Q_of_x = Q1x[ii].Q_of_x;      // save the smooth number 
+                            Qx[k].x = Q1x[ii].x;                // save the square root
+                            Qx[k].exponents = expo1;            // save the prime exponents
+                            Interlocked.Increment(ref k);
+                        }
+                    }
+                    catch (IndexOutOfRangeException ex)
+                    {
+                        loopState.Stop();
+                        WriteLine("Caught exception: " + ex.Message);
+                    }
+                }
+                );
+                Write("{0} smooth numbers\r", k);
+            }   // while (k < factor_base.Length) 
+#if DEBUG
+            sw.Stop();
+            string strElapsed;
+            if (sw.ElapsedMilliseconds <= 1000)
+                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
+            else
+                strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
+            WriteLine("Collected {0} smooth numbers.\nElapsed time: {1}\n", k, strElapsed);
+#endif
+        }   // class MyBigInteger_Class
 
         public void Smooth_Nums_Test(string S1)
         {
@@ -1232,24 +1278,24 @@ namespace RSABigInt
     {
         static void Main(string[] args)
         {
-            MyBigInteger_Class c = new MyBigInteger_Class();
+            MyBigInteger_Class clsMBI = new MyBigInteger_Class();
 
             //Assembly assem = typeof(BigInteger).Assembly;
             //BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
 
-            BigInteger p = c.RandPrime(3);
-            BigInteger q = c.RandPrime(3);
+            BigInteger p = clsMBI.RandPrime(3);
+            BigInteger q = clsMBI.RandPrime(3);
             BigInteger N = p * q;
 
             WriteLine($"{p} x {q} = {N}");
 
-            //c.TwinPrime_Test();
-            //c.PrimeTriplet_Test();
-            //c.Mersenne2(23);
-            c.Smooth_Nums_Test(N.ToString());
-            //c.RSA_Numbers();
-            //c.ModPow_Misc_Stuff();
-            //c.Pollard_Rho_Test();
+            //clsMBI.TwinPrime_Test();
+            //clsMBI.PrimeTriplet_Test();
+            //clsMBI.Mersenne2(23);
+            //clsMBI.Smooth_Nums_Test(N.ToString());
+            //clsMBI.RSA_Numbers();
+            //clsMBI.ModPow_Misc_Stuff();
+            //clsMBI.Pollard_Rho_Test();
 
             Write("\nPress Enter: ");
             ReadLine();
