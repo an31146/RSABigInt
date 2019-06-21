@@ -21,9 +21,9 @@ namespace RSABigInt
 {
     class MyBigInteger_Class
     {
-        //private const uint ARRAY_SIZE = 0x166e0e21;
-        private const uint ARRAY_SIZE = 0x10000000;
-        private const ulong LIMIT = 2 ^ 31 - 1;
+        private const uint ARRAY_SIZE = 0x166e0e21;
+        //private const uint ARRAY_SIZE = Int32.MaxValue;
+        private const ulong LIMIT = Int32.MaxValue;
         private Random _randObj;
         private uint[] primes;               
         private uint[] factor_base;          //
@@ -43,7 +43,7 @@ namespace RSABigInt
             _randObj = new Random((int)DateTime.Now.Ticks);
             primes = new uint[ARRAY_SIZE];                  // 131072 elements --- 0x18000000 = 1.5GB array
             factor_base = new uint[ARRAY_SIZE];
-            prime_sieve(LIMIT);
+            prime_sieve(LIMIT>>3);
         }
 
         public void prime_sieve(ulong n)
@@ -592,8 +592,11 @@ namespace RSABigInt
                     WriteLine("elapsed time: {0} ms\n", sw.ElapsedMilliseconds);
                     sw.Restart();
                 }
+
                 if (n < x)
+                {
                     break;
+                }
             }
         }
 
@@ -1270,7 +1273,7 @@ namespace RSABigInt
 
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
-            c.Mersenne2(23);
+            c.Mersenne2(29);
             //c.Smooth_Nums_Test(N.ToString());
             //c.RSA_Numbers();
             //c.ModPow_Misc_Stuff();
