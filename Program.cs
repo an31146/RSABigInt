@@ -3,10 +3,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Algorithms;
 
 using static System.Console;
 
@@ -25,6 +23,7 @@ namespace RSABigInt
     {
         //private const uint ARRAY_SIZE = 0x166e0e21;
         private const uint ARRAY_SIZE = 0x10000000;
+        private const ulong LIMIT = 2 ^ 31 - 1;
         private Random _randObj;
         private uint[] primes;               
         private uint[] factor_base;          //
@@ -44,6 +43,7 @@ namespace RSABigInt
             _randObj = new Random((int)DateTime.Now.Ticks);
             primes = new uint[ARRAY_SIZE];                  // 131072 elements --- 0x18000000 = 1.5GB array
             factor_base = new uint[ARRAY_SIZE];
+            prime_sieve(LIMIT);
         }
 
         public void prime_sieve(ulong n)
