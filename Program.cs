@@ -1262,8 +1262,8 @@ namespace RSABigInt
             //Assembly assem = typeof(BigInteger).Assembly;
             //BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
 
-            BigInteger p = c.RandPrime(2);
-            BigInteger q = c.RandPrime(2);
+            BigInteger p = c.RandPrime(5);
+            BigInteger q = c.RandPrime(5);
             BigInteger N = p * q;
 
             WriteLine($"{p} x {q} = {N}");
