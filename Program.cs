@@ -567,19 +567,6 @@ namespace RSABigInt
             });
         }
 
-        bool LucasLehmer(int n)
-        {
-            BigInteger seed = 4;
-            BigInteger div = (new BigInteger(1) << n) - 1;      // div = 2^n - 1
-
-            for (BigInteger i = 3; i <= n; i++)
-            {
-                seed = (seed * seed - 2) % div;
-            }
-            return (seed == 0);
-        }
-
-        // Use LucasLehmer to determine if 2^n-1 is prime
         public void Mersenne2(int n)
         {
             BigInteger Pow2Sub1;
@@ -608,6 +595,19 @@ namespace RSABigInt
                 if (n < x)
                     break;
             }
+        }
+
+        // Use LucasLehmer to determine if 2^n-1 is prime
+        bool LucasLehmer(int n)
+        {
+            BigInteger seed = 4;
+            BigInteger div = (new BigInteger(1) << n) - 1;      // div = 2^n - 1
+
+            for (BigInteger i = 3; i <= n; i++)
+            {
+                seed = (seed * seed - 2) % div;
+            }
+            return (seed == 0);
         }
 
         public void RSA_Numbers()
@@ -779,8 +779,8 @@ namespace RSABigInt
                 strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
 
             string strValue = $"Process_Matrix() Elapsed time: {strElapsed}\n";
-#endif
             WriteLine(strValue);
+#endif
         }
 
         void Gauss_Elimination()
@@ -1270,8 +1270,8 @@ namespace RSABigInt
 
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
-            //c.Mersenne2(23);
-            c.Smooth_Nums_Test(N.ToString());
+            c.Mersenne2(23);
+            //c.Smooth_Nums_Test(N.ToString());
             //c.RSA_Numbers();
             //c.ModPow_Misc_Stuff();
             //c.Pollard_Rho_Test();
