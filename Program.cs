@@ -589,7 +589,10 @@ namespace RSABigInt
                     else
                         WriteLine("M[{0}] = {1}...{2}", primes[i], strPow2Sub1.Substring(0, 12), strPow2Sub1.Substring(strPow2Sub1.Length - 12, 12));
                     x++;
-                    WriteLine("elapsed time: {0} ms\n", sw.ElapsedMilliseconds);
+                    if (sw.ElapsedMilliseconds < 1000)
+                        WriteLine("elapsed time: {0} ms\n", sw.ElapsedMilliseconds);
+                    else
+                        WriteLine("elapsed time: {0:F1} s\n", sw.Elapsed.Seconds);
                     sw.Restart();
                 }
 
