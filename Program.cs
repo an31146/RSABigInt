@@ -60,7 +60,9 @@ namespace RSABigInt
                 for (ulong i = primes[p]*primes[p]; i <= n; i+=primes[p])
                     primes[i] = 1;
                 primes[++p] = primes[p-1] + 1;
-                for (; primes[p] <= n && primes[primes[p]] == 1; primes[p]++) ; //find next prime (where s[p]==0)
+                while (primes[p] <= n && primes[primes[p]] == 1)
+                    //find next prime (where s[p]==0)
+                    primes[p]++; 
             }
             Array.Resize(ref primes, p);
 
@@ -550,9 +552,9 @@ namespace RSABigInt
             Parallel.For(0, primes.Length, (int i) =>
             {
                 Pow2Sub1 = new BigInteger(1) << (int)primes[i];
-                Pow2Sub1 -= 1;
+                Pow2Sub1--;
                 //sw.Restart();
-                rem = BigInteger.ModPow(3, Pow2Sub1 - 1, Pow2Sub1);
+                rem = BigInteger.ModPow(3, Pow2Sub1 - 1, Pow2Sub1);                     // really trivial primality test?
                 if (rem.IsOne)
                 {
                     //sw.Stop();
@@ -577,7 +579,7 @@ namespace RSABigInt
             sw.Start();
             for (int i = 0, x = 1; i < primes.Length; i++)
             {
-                isMprime = LucasLehmer((int)primes[i]);
+                isMprime = LucasLehmer(primes[i]);
 
                 if (isMprime)
                 {
@@ -588,14 +590,15 @@ namespace RSABigInt
                         WriteLine("M[{0}] = {1}", primes[i], strPow2Sub1);
                     else
                         WriteLine("M[{0}] = {1}...{2}", primes[i], strPow2Sub1.Substring(0, 12), strPow2Sub1.Substring(strPow2Sub1.Length - 12, 12));
-                    x++;
+
+                    x++;                                // This increment isn't obvious!
+
                     if (sw.ElapsedMilliseconds < 1000)
                         WriteLine("elapsed time: {0} ms\n", sw.ElapsedMilliseconds);
                     else
                         WriteLine("elapsed time: {0:F1} s\n", sw.Elapsed.Seconds);
                     sw.Restart();
                 }
-
                 if (n < x)
                 {
                     break;
@@ -604,12 +607,12 @@ namespace RSABigInt
         }
 
         // Use LucasLehmer to determine if 2^n-1 is prime
-        bool LucasLehmer(int n)
+        bool LucasLehmer(uint n)
         {
             BigInteger seed = 4;
             BigInteger div = (new BigInteger(1) << n) - 1;      // div = 2^n - 1
 
-            for (BigInteger i = 3; i <= n; i++)
+            for (int i = 3; i <= n; i++)
             {
                 seed = (seed * seed - 2) % div;
             }
