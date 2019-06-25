@@ -25,6 +25,7 @@ namespace RSABigInt
     {
         //private const uint ARRAY_SIZE = 0x166e0e21;
         private const uint ARRAY_SIZE = 0x10000000;
+        private const uint LIMIT = 10000000;
         private Random _randObj;
         private uint[] primes;               
         private uint[] factor_base;          //
@@ -44,6 +45,7 @@ namespace RSABigInt
             _randObj = new Random((int)DateTime.Now.Ticks);
             primes = new uint[ARRAY_SIZE];                  // 131072 elements --- 0x18000000 = 1.5GB array
             factor_base = new uint[ARRAY_SIZE];
+            prime_sieve(LIMIT);
         }
 
         public void prime_sieve(ulong n)
@@ -521,8 +523,8 @@ namespace RSABigInt
 
         bool LucasLehmer(int n)
         {
-            //BigInteger seed = 4;
-            BigInteger seed= (new BigInteger(1) << n + 1) / 3;     // seed = (2^n + 1) / 3
+            BigInteger seed = 4;
+            //BigInteger seed= (new BigInteger(1) << n + 1) / 3;     // seed = (2^n + 1) / 3
             BigInteger div = (new BigInteger(1) << n) - 1;          // div = 2^n - 1
 
             for (BigInteger i = 3; i <= n; i++)
@@ -535,9 +537,9 @@ namespace RSABigInt
         // Use LucasLehmer to determine if 2^n-1 is prime
         public void Mersenne2(int n)
         {
-            BigInteger Pow2Sub1;
+            BigInteger PowerOf2Sub1;
             bool isMprime;
-            string strPow2Sub1;
+            string strPowerOf2Sub1;
             Stopwatch sw = new Stopwatch();
 
             sw.Start();
@@ -548,12 +550,14 @@ namespace RSABigInt
                 if (isMprime)
                 {
                     sw.Stop();
-                    Pow2Sub1 = BigInteger.Pow(2, (int)primes[i]) - 1;
-                    strPow2Sub1 = Pow2Sub1.ToString();
-                    if (numberOfMprimes < 10)
-                        WriteLine("M[{0}] = {1}", primes[i], strPow2Sub1);
+                    PowerOf2Sub1 = BigInteger.Pow(2, (int)primes[i]) - 1;
+                    strPowerOf2Sub1 = PowerOf2Sub1.ToString();
+
+                    if (numberOfMprimes < 9)
+                        WriteLine("M[{0}] = {1}", primes[i], strPowerOf2Sub1);
                     else
-                        WriteLine("M[{0}] = {1}...{2}", primes[i], strPow2Sub1.Substring(0, 12), strPow2Sub1.Substring(strPow2Sub1.Length - 12, 12));
+                        WriteLine("M[{0}] = {1}...{2}", primes[i], strPowerOf2Sub1.Substring(0, 12), 
+                                                                   strPowerOf2Sub1.Substring(strPowerOf2Sub1.Length - 12, 12));
 
                     numberOfMprimes++;
 
@@ -796,8 +800,6 @@ namespace RSABigInt
             });     // Parallel.For p
             sw.Stop();
 #if DEBUG
-            SquareRoot(BigInteger.Parse("2" + new String('0', 10000)));
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -1394,7 +1396,7 @@ namespace RSABigInt
             BigInteger q = clsMBI.RandPrime(3);
             BigInteger N = p * q;
 
-            WriteLine($"{p} x {q} = {N}");
+            WriteLine($"{p} x {q} = {N}\n");
 
             //clsMBI.TwinPrime_Test();
             //clsMBI.PrimeTriplet_Test();
