@@ -28,7 +28,7 @@ namespace segmented_sieve
         {
             int sqrt = (int)Math.Sqrt((double)limit);
             //double twin_prime_const = 1.0d;
-            Int64 count = (limit < 2) ? 0 : 1;
+            long count = (limit < 2) ? 0 : 1;
             int s = 2;
             int n = 3;
 
@@ -50,7 +50,7 @@ namespace segmented_sieve
                 segment.SetAll(true);
 
                 // current segment = interval [low, high]
-                Int64 high = low + segment_size - 1 < limit ? low + segment_size - 1 : limit;
+                long high = low + segment_size - 1 < limit ? low + segment_size - 1 : limit;
 
                 // store small primes needed to cross off multiples
                 for (; s * s <= high; s++)
@@ -84,7 +84,7 @@ namespace segmented_sieve
         static void Main(string[] args)
         {
             // generate the primes below this number
-            Int64 limit = 100000000;
+            long limit = 100000000;
             Stopwatch clock = new Stopwatch();
 
             if (args.Length >= 1)
