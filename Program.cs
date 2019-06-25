@@ -220,55 +220,35 @@ namespace RSABigInt
 
         public BigInteger SquareRoot(BigInteger n)
         {
-<<<<<<< HEAD
-            BigInteger d = BigInteger.One, q, _q;
-            Stopwatch sw2 = new Stopwatch();
-            bool bTestRoot = true;
-=======
             BigInteger d = n >> 1, q, _d;
             Stopwatch sw = new Stopwatch();
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
 
             sw.Start();
             //Newton's Method
             do
             {
                 q = n / d + d;
-<<<<<<< HEAD
-                _q = q;
-                q >>= 1;
-                d = q;
-                bTestRoot = q * q > n;
-            } while (bTestRoot);
-            sw2.Stop();
-=======
                 _d = d;
                 q >>= 1;
                 d = q;
             } while (_d > q);
 
             sw.Stop();
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
+
 #if DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
             else
-<<<<<<< HEAD
-                strElapsed = String.Format("{0:F1} s", (float)sw2.ElapsedMilliseconds / 1000);
+                strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Seconds);
 
             WriteLine($"\nSquareRoot({n})\nElapsed time: {strElapsed}\n");
 #endif
-=======
-                strElapsed = String.Format("{0:F1} s", sw.Elapsed.Seconds);
-            WriteLine($"\nSquareRoot({n})\nElapsed time: {strElapsed}\n");
-#endif
 
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
             return q;
         }
 
-        // Why is this function 3 times(!) quick than the one above?
+        // Why is this function 3 times(!) quicker than the one above?
         public static BigInteger Sqrt(BigInteger x)
         {
             BigInteger div = BigInteger.One;
@@ -381,93 +361,6 @@ namespace RSABigInt
             WriteLine($"Factor base: {j} primes.\n");
         }
 
-<<<<<<< HEAD
-=======
-        public void Smooth_Numbers(BigInteger N1)
-        {
-            BigInteger sqrt_N1 = SquareRoot(N1);
-            BigInteger i = sqrt_N1 + 1;
-            BigInteger j = sqrt_N1 - 1;
-
-            // Collect smooth numbers
-            Factor_Base(N1);
-
-            uint N_smooths = (uint)(factor_base.Length * 1.01d);
-            if ((N_smooths & 1) == 1)
-                N_smooths++;                // make it even
-            Qx = new smooth_num[N_smooths];
-            Qx.Initialize();
-            long k = -1;
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            Task[] smooth = new Task[2];
-            smooth[0] = Task.Run(() =>
-            {
-                while (k < N_smooths-1)
-                {
-                    BigInteger sm = i * i - N1;
-                    uint[] expo1 = GetPrimeFactors(sm);
-                    if (expo1 != null)
-                    {
-                        Interlocked.Increment(ref k); 
-                        Qx[k].Q_of_x = sm;
-                        Qx[k].x = i;
-                        Qx[k].exponents = expo1;
-
-                        Write(k.ToString() + " smooth numbers\r");
-                    }
-                    i++;
-                    /*
-                    sm = N1 - j * j;
-                    expo1 = GetPrimeFactors(sm);
-                    if (expo1 != null)
-                    {
-                        Qx[k].Q_of_x = sm;
-                        Qx[k].x = j;
-                        Qx[k].exponents = expo1;
-                        Interlocked.Increment(ref k);
-                        Write(k.ToString() + " smooth numbers\r");
-                    }
-                    j--;
-                     */ 
-                }
-            });
-
-            smooth[1] = Task.Run(() =>
-            {
-                while (k < N_smooths-1)
-                {
-                    BigInteger sm = N1 - j * j;
-                    uint[] expo1 = GetPrimeFactors(sm);
-                    if (expo1 != null)
-                    {
-                        Interlocked.Increment(ref k); 
-                        Qx[k].Q_of_x = sm;
-                        Qx[k].x = j;
-                        Qx[k].exponents = expo1;
-                        Write(k.ToString() + " smooth numbers\r");
-                    }
-                    j--;
-                }
-            });
-
-            Task.WaitAll(smooth);
-#if DEBUG
-            sw.Stop();
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", sw.Elapsed.Seconds);
-            
-            WriteLine("Collected {k} smooth numbers.\nElapsed time: {strElapsed}\n");
-#endif
-            //WriteLine("{0}\t{1}", i - sqrt_N1, sqrt_N1 - j);
-        }
-
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
         int Legendre(BigInteger n, uint p)
             {
                 BigInteger p1, l;
@@ -628,8 +521,9 @@ namespace RSABigInt
 
         bool LucasLehmer(int n)
         {
-            BigInteger seed = 4;
-            BigInteger div = (new BigInteger(1) << n) - 1;      // div = 2^n - 1
+            //BigInteger seed = 4;
+            BigInteger seed= (new BigInteger(1) << n + 1) / 3;     // seed = (2^n + 1) / 3
+            BigInteger div = (new BigInteger(1) << n) - 1;          // div = 2^n - 1
 
             for (BigInteger i = 3; i <= n; i++)
             {
@@ -647,7 +541,7 @@ namespace RSABigInt
             Stopwatch sw = new Stopwatch();
 
             sw.Start();
-            for (int i = 0, x = 1; i < primes.Length; i++)
+            for (int i = 0, numberOfMprimes = 1; i < primes.Length; i++)
             {
                 isMprime = LucasLehmer((int)primes[i]);
 
@@ -656,15 +550,17 @@ namespace RSABigInt
                     sw.Stop();
                     Pow2Sub1 = BigInteger.Pow(2, (int)primes[i]) - 1;
                     strPow2Sub1 = Pow2Sub1.ToString();
-                    if (x < 10)
+                    if (numberOfMprimes < 10)
                         WriteLine("M[{0}] = {1}", primes[i], strPow2Sub1);
                     else
                         WriteLine("M[{0}] = {1}...{2}", primes[i], strPow2Sub1.Substring(0, 12), strPow2Sub1.Substring(strPow2Sub1.Length - 12, 12));
-                    x++;
+
+                    numberOfMprimes++;
+
                     WriteLine("elapsed time: {0} ms\n", sw.ElapsedMilliseconds);
                     sw.Restart();
                 }
-                if (n < x)
+                if (n < numberOfMprimes)
                     break;
             }
         }
@@ -710,12 +606,8 @@ namespace RSABigInt
         {
             BigInteger N = RandPrime(7);
             double Temp = BigInteger.Log10(N);
-<<<<<<< HEAD
             int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.618);
-=======
-            int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.318);
 
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
             BigInteger T1 = BigInteger.Pow(new BigInteger(2), 1048576);         // 315653 digit number!
             T1 = (new BigInteger(1) << 9689) - 1;
             double LogT1 = BigInteger.Log10(T1);
@@ -725,12 +617,11 @@ namespace RSABigInt
             //file1.Close();
 
             Stopwatch sw = new Stopwatch();
+            BigInteger T2;
             sw.Start();
-<<<<<<< HEAD
-            BigInteger T2 = BigInteger.ModPow(new BigInteger(13), T1 - 1, T1);
-=======
-                BigInteger T2 = BigInteger.ModPow(new BigInteger(13), T1 - 1, T1);
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
+            {
+                T2 = BigInteger.ModPow(new BigInteger(13), T1 - 1, T1);
+            }
             sw.Stop();
 
             WriteLine("ModPow time: {0} ms\n", sw.ElapsedMilliseconds);                // ModPow time: 12453 ms
@@ -738,24 +629,18 @@ namespace RSABigInt
             double LogT2 = BigInteger.Log10(T2);
             string strNormalizedIntegerTwo = "2" + new String('0', 100000);
 
-<<<<<<< HEAD
-            // SquareRoot(2e10000)
             SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
-            // Sqrt(2e10000)
             Sqrt(BigInteger.Parse(strNormalizedIntegerTwo));
             
             //int n = 13017;  //7921;   // 1789;   // 3607;
             //WriteLine("fact({1}) = {0}\n", Factorial(n).ToString(), n);
             //WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n).ToString(), n);
-=======
-            BigInteger sqrt2 = SquareRoot(BigInteger.Parse("2" + new String('0', 10000)));
-            WriteLine($"sqrt(2) = {sqrt2}\n");
+            //BigInteger sqrt2 = SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
+            //WriteLine($"sqrt(2) = {sqrt2}\n");
 
             int n = 13017;  //7921;   // 1789;   // 3607;
             WriteLine("fact({1}) = {0}\n", Factorial(n), n);
             WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n), n);
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
-
         }
 
         BigInteger g (BigInteger x, BigInteger n, int a) 
@@ -859,8 +744,8 @@ namespace RSABigInt
                 strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
 
             string strValue = $"Process_Matrix() Elapsed time: {strElapsed}\n";
-#endif
             WriteLine(strValue);
+#endif
         }
 
         void Gauss_Elimination()
@@ -873,15 +758,11 @@ namespace RSABigInt
                 CancellationToken = cancellationSource.Token
             };
 
-<<<<<<< HEAD
-            sw2.Start();
             // TO-DO: Parallelize the loops!
-            for (uint p = 0; p < matrix.GetLength(0); p++)                  // number of rows
-=======
+            //for (uint p = 0; p < matrix.GetLength(0); p++)                  // number of rows
             sw.Start();
             ParallelLoopResult res = Parallel.For(0, matrix.GetLength(0), parallelOptions, (p, loopState) =>
             //for (uint p = 0; p < matrix.GetLength(0); p++)                    // number of rows
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
             {
                 // find pivot row and swap 
                 for (long i = p + 1; i < matrix.GetLength(0); i++)              // 
@@ -911,13 +792,7 @@ namespace RSABigInt
                             matrix[i, j] ^= matrix[p, j];
                         }
                     }
-<<<<<<< HEAD
                 } // for i
-            } // for p
-            sw2.Stop();
-#if DEBUG
-=======
-                }   // for i
             });     // Parallel.For p
             sw.Stop();
 #if DEBUG
@@ -1251,7 +1126,7 @@ namespace RSABigInt
                 strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
             WriteLine("Collected {0} smooth numbers.\nElapsed time: {1}\n", k, strElapsed);
 #endif
-        }   // class MyBigInteger_Class
+        }   // Smooth_Numbers2
 
         public void Smooth_Nums_Test(string S1)
         {
@@ -1425,6 +1300,7 @@ namespace RSABigInt
             //Calculate_Factors_Task(N);
         }
 
+    /*
         public void Smooth_Numbers2(BigInteger N1)
         {
             BigInteger sqrt_N1 = SquareRoot(N1);
@@ -1501,8 +1377,8 @@ namespace RSABigInt
 
             WriteLine("Collected {k} smooth numbers.\nElapsed time: {strElapsed}\n");
 #endif
-        }   // class MyBigInteger_Class
-
+        }   // Smooth_Numbers2
+    */
     }   // class MyBigInteger_Class
 
     class Program
@@ -1514,21 +1390,16 @@ namespace RSABigInt
             //Assembly assem = typeof(BigInteger).Assembly;
             //BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
 
-<<<<<<< HEAD
             BigInteger p = clsMBI.RandPrime(3);
             BigInteger q = clsMBI.RandPrime(3);
-=======
-            BigInteger p = c.RandPrime(2);
-            BigInteger q = c.RandPrime(2);
->>>>>>> 85a39c82991ef3040aec4f6b6476603b83885743
             BigInteger N = p * q;
 
             WriteLine($"{p} x {q} = {N}");
 
             //clsMBI.TwinPrime_Test();
             //clsMBI.PrimeTriplet_Test();
-            //clsMBI.Mersenne2(23);
-            clsMBI.ModPow_Misc_Stuff();
+            clsMBI.Mersenne2(23);
+            //clsMBI.ModPow_Misc_Stuff();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.RSA_Numbers();
             //clsMBI.Smooth_Nums_Test(N.ToString());
