@@ -1292,10 +1292,10 @@ namespace RSABigInt
             //clsMBI.TwinPrime_Test();
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne2(23);
-            //clsMBI.Smooth_Nums_Test(N.ToString());
-            //clsMBI.RSA_Numbers();
-            //clsMBI.ModPow_Misc_Stuff();
+            clsMBI.ModPow_Misc_Stuff();
             //clsMBI.Pollard_Rho_Test();
+            //clsMBI.RSA_Numbers();
+            //clsMBI.Smooth_Nums_Test(N.ToString());
 
             Write("\nPress Enter: ");
             ReadLine();
