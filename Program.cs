@@ -577,7 +577,7 @@ namespace RSABigInt
             Stopwatch sw = new Stopwatch();
 
             sw.Start();
-            for (int i = 0, x = 1; i < primes.Length; i++)
+            for (int i = 0, Mcount = 1; i < primes.Length; i++)
             {
                 isMprime = LucasLehmer(primes[i]);
 
@@ -586,12 +586,12 @@ namespace RSABigInt
                     sw.Stop();
                     Pow2Sub1 = BigInteger.Pow(2, (int)primes[i]) - 1;
                     strPow2Sub1 = Pow2Sub1.ToString();
-                    if (x < 10)
+
+                    // This increment isn't obvious!  Number of Mersenne primes found so far
+                    if (Mcount++ < 10)
                         WriteLine("M[{0}] = {1}", primes[i], strPow2Sub1);
                     else
                         WriteLine("M[{0}] = {1}...{2}", primes[i], strPow2Sub1.Substring(0, 12), strPow2Sub1.Substring(strPow2Sub1.Length - 12, 12));
-
-                    x++;                                // This increment isn't obvious!
 
                     if (sw.ElapsedMilliseconds < 1000)
                         WriteLine("elapsed time: {0} ms\n", sw.ElapsedMilliseconds);
@@ -599,7 +599,7 @@ namespace RSABigInt
                         WriteLine("elapsed time: {0:F1} s\n", sw.Elapsed.Seconds);
                     sw.Restart();
                 }
-                if (n < x)
+                if (n < Mcount)
                 {
                     break;
                 }
@@ -610,7 +610,7 @@ namespace RSABigInt
         bool LucasLehmer(uint n)
         {
             BigInteger seed = 4;
-            BigInteger div = (new BigInteger(1) << n) - 1;      // div = 2^n - 1
+            BigInteger div = (new BigInteger(1) << (int)n) - 1;      // div = 2^n - 1
 
             for (int i = 3; i <= n; i++)
             {
