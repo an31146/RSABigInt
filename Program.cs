@@ -542,7 +542,7 @@ namespace RSABigInt
             }
         }
 
-        public void Mersenne(int n)
+        public void Mersenne(int limit)
         {
             BigInteger Pow2Sub1, rem;
             string strPow2Sub1;
@@ -569,15 +569,23 @@ namespace RSABigInt
             });
         }
 
-        public void Mersenne2(int n)
+        public void Mersenne2(int limit)
         {
             BigInteger Pow2Sub1;
             bool isMprime;
             string strPow2Sub1;
             Stopwatch sw = new Stopwatch();
 
+            CancellationTokenSource cancellationSource = new CancellationTokenSource();
+            ParallelOptions parallelOptions = new ParallelOptions()
+            {
+                CancellationToken = cancellationSource.Token
+            };
+            int Mcount = 1;
+
             sw.Start();
-            for (int i = 0, Mcount = 1; i < primes.Length; i++)
+            Parallel.For(0, primes.Length, parallelOptions, (i, loopState) =>
+            //for (int i = 0, Mcount = 1; i < primes.Length; i++)
             {
                 isMprime = LucasLehmer(primes[i]);
 
@@ -588,7 +596,7 @@ namespace RSABigInt
                     strPow2Sub1 = Pow2Sub1.ToString();
 
                     // This increment isn't obvious!  Number of Mersenne primes found so far
-                    if (Mcount++ < 10)
+                    if (++Mcount < 10)
                         WriteLine("M[{0}] = {1}", primes[i], strPow2Sub1);
                     else
                         WriteLine("M[{0}] = {1}...{2}", primes[i], strPow2Sub1.Substring(0, 12), strPow2Sub1.Substring(strPow2Sub1.Length - 12, 12));
@@ -599,11 +607,12 @@ namespace RSABigInt
                         WriteLine("elapsed time: {0:F1} s\n", sw.Elapsed.Seconds);
                     sw.Restart();
                 }
-                if (n < Mcount)
+                if (limit < Mcount)
                 {
-                    break;
+                    //break;
+                    loopState.Stop();
                 }
-            }
+            });     // Parallel.For
         }
 
         // Use LucasLehmer to determine if 2^n-1 is prime
