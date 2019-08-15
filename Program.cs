@@ -1,5 +1,6 @@
 ﻿//#define _DEBUG
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -572,9 +573,9 @@ namespace RSABigInt
         public void Mersenne2(int limit)
         {
             BigInteger Pow2Sub1;
-            bool isMprime;
+            //bool isMprime;
             string strPow2Sub1;
-            Stopwatch sw = new Stopwatch();
+            Dictionary<int, Stopwatch> SW_dict = new Dictionary<int, Stopwatch>();
 
             CancellationTokenSource cancellationSource = new CancellationTokenSource();
             ParallelOptions parallelOptions = new ParallelOptions()
@@ -583,12 +584,18 @@ namespace RSABigInt
             };
             int Mcount = 1;
 
-            sw.Start();
             Parallel.For(0, primes.Length, parallelOptions, (i, loopState) =>
             //for (int i = 0, Mcount = 1; i < primes.Length; i++)
             {
-                isMprime = LucasLehmer(primes[i]);
+                int tid = Thread.CurrentThread.ManagedThreadId;
 
+                if (!SW_dict.ContainsKey(tid))
+                    SW_dict.Add(tid, new Stopwatch());
+                
+                SW_dict.TryGetValue(tid, out var sw);
+                sw.Start();
+
+                bool isMprime = LucasLehmer(primes[i]);
                 if (isMprime)
                 {
                     sw.Stop();
@@ -596,7 +603,8 @@ namespace RSABigInt
                     strPow2Sub1 = Pow2Sub1.ToString();
 
                     // This increment isn't obvious!  Number of Mersenne primes found so far
-                    if (++Mcount < 10)
+                    Interlocked.Increment(ref Mcount);
+                    if (Mcount < 10)
                         WriteLine("M[{0}] = {1}", primes[i], strPow2Sub1);
                     else
                         WriteLine("M[{0}] = {1}...{2}", primes[i], strPow2Sub1.Substring(0, 12), strPow2Sub1.Substring(strPow2Sub1.Length - 12, 12));
