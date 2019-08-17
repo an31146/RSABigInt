@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 using static System.Console;
 
-#pragma warning disable IDE1006,IDE1005,IDE1017,CS0219,CS0168
+#pragma warning disable IDE0011,IDE0045,IDE0048,IDE1006,IDE1005,IDE1017,CS0219,CS01682
 /*
+ * IDE0011 Add braces to 'if' statement
+ * IDE0045 'if' statement can be simplified
+ * IDE0048 Add parantheses for clarity
  * IDE1006 Suppress Naming Rule Violation IDE1006
  * IDE1005 Delegate invocation can be simplified
  * IDE1017 Object initialization can be simplified
@@ -44,7 +47,7 @@ namespace RSABigInt
             _randObj = new Random((int)DateTime.Now.Ticks);
             primes = new uint[ARRAY_SIZE];                  // 131072 elements --- 0x18000000 = 1.5GB array
             factor_base = new uint[ARRAY_SIZE];
-            prime_sieve(LIMIT>>3);
+            prime_sieve(LIMIT>>8);
         }
 
         public void prime_sieve(ulong n)
@@ -56,19 +59,23 @@ namespace RSABigInt
             sw.Start();
 
             primes[0] = 2;
-            for (p = 0; primes[p] <= n;) 
+            for (p = 0; primes[p] < n;) 
             {
-                for (ulong i = primes[p]*primes[p]; i <= n; i+=primes[p])
+                for (uint i = primes[p]*primes[p]; i < n; i += primes[p])
                     primes[i] = 1;
-                primes[++p] = primes[p-1] + 1;
-                while (primes[p] <= n && primes[primes[p]] == 1)
+                primes[p+1] = primes[p++] + 1;
+                while (primes[p] < n && primes[primes[p]] == 1)
                     //find next prime (where s[p]==0)
                     primes[p]++; 
             }
             Array.Resize(ref primes, p);
 
             sw.Stop();
-#if DEBUG
+#if _DEBUG
+            for (p = 0; primes[p] != 1; p++)
+                ;
+            WriteLine($"primes[{p}] = {primes[p]}");
+
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -168,17 +175,37 @@ namespace RSABigInt
                 rnd += _randObj.Next();
             }
             rnd |= 1;
-            rem = BigInteger.ModPow(a, rnd - 1, rnd);
 
-            while (!rem.IsOne)
+            bool b_TrialDiv = false;
+            while (!(b_TrialDiv))
             {
-                rnd += 2;
-                rem = BigInteger.ModPow(a, rnd - 1, rnd);
+                foreach (uint p in primes)
+                {
+                    if (rnd % p == 0 && p != 1)
+                    {
+#if _DEBUG
+                        WriteLine($"{p,10:N0}");
+#endif
+                        rnd += 2;
+                        break;
+                    }
+                    //Write($"{p,10:N0}\r");
+                    b_TrialDiv = primes[primes.Length - 1] == p;
+                }
             }
+#if _DEBUG
+            WriteLine();
+#endif
+            if (b_TrialDiv)
+                while (!rem.IsOne)
+                {
+                    rem = BigInteger.ModPow(a, rnd - 1, rnd);
+                    rnd += 2;
+                }
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
+            if (sw.ElapsedMilliseconds < 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
             else
                 strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
@@ -237,7 +264,7 @@ namespace RSABigInt
             } while (_d > q);
 
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -259,7 +286,7 @@ namespace RSABigInt
                 fact *= i;
 
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -286,7 +313,7 @@ namespace RSABigInt
             }
 
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -399,7 +426,7 @@ namespace RSABigInt
             });
 
             Task.WaitAll(smooth);
-#if DEBUG
+#if _DEBUG
             sw.Stop();
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
@@ -589,10 +616,10 @@ namespace RSABigInt
             {
                 int tid = Thread.CurrentThread.ManagedThreadId;
 
-                if (!SW_dict.ContainsKey(tid))
+                if (!SW_dict.ContainsKey(tid))              // add a new Stopwatch instance if one doesn't already exist in SW_dict
                     SW_dict.Add(tid, new Stopwatch());
                 
-                SW_dict.TryGetValue(tid, out var sw);
+                SW_dict.TryGetValue(tid, out var sw);       // retrieve instance of Stopwatch for this thread id.
                 sw.Start();
 
                 bool isMprime = LucasLehmer(primes[i]);
@@ -675,13 +702,20 @@ namespace RSABigInt
 
         public void ModPow_Misc_Stuff()
         {
-            BigInteger N = RandPrime(7);
+            BigInteger N = RandPrime(70);
             double Temp = BigInteger.Log10(N);
             int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.318);
 
             BigInteger T1 = BigInteger.Pow(new BigInteger(2), 1048576);         // 315653 digit number!
             T1 = (new BigInteger(1) << 9689) - 1;
             double LogT1 = BigInteger.Log10(T1);
+
+            T1 = BigInteger.Pow(new BigInteger(2), 16777216);                   // 5050446 decimal digits! (wolframalpha.com)
+#if !_DEBUG && false
+            int len_T1 = T1.ToString().Length;                                  // DON'T evaluate this in DEBUG or RELEASE mode.
+#endif
+            T1 = (new BigInteger(1) << 9689) - 1;
+            LogT1 = BigInteger.Log10(T1);
 
             //StreamWriter file1 = new StreamWriter("output.txt", false);
             //file1.WriteLine(T1.ToString());
@@ -797,7 +831,7 @@ namespace RSABigInt
             }
 
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -828,7 +862,7 @@ namespace RSABigInt
                 {
                     if (matrix[i, p] > matrix[p, p])
                     {
-#if DEBUG
+#if _DEBUG
                         WriteLine("Swap rows: {0} and {1}", p, i);
 #endif
                         row_swaps++;
@@ -842,7 +876,7 @@ namespace RSABigInt
 
                     if (matrix[i, p] == 1)                                  // Add these rows if value in pivot column is 1
                     {
-#if DEBUG
+#if _DEBUG
                         WriteLine("Add row: {0} to row: {1}", p, i);
 #endif
                         row_adds++;
@@ -854,7 +888,7 @@ namespace RSABigInt
                 }   // for i
             });     // Parallel.For p
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             SquareRoot(BigInteger.Parse("2" + new String('0', 10000)));
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
@@ -945,7 +979,7 @@ namespace RSABigInt
 
             DateTime dt1 = DateTime.Now;
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -978,7 +1012,7 @@ namespace RSABigInt
                         }
                     if (!bNonNullFound)
                     {
-#if DEBUG
+#if _DEBUG
                         WriteLine("\nFound null vector matrix row[{0}]", i);
 #endif
                         // calculate smooth number from exponents, should be a perfect square
@@ -1016,7 +1050,7 @@ namespace RSABigInt
             }
 
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -1266,7 +1300,7 @@ namespace RSABigInt
             }   // while (k < factor_base.Length) 
 
             sw.Stop();
-#if DEBUG
+#if _DEBUG
             string strElapsed;
             if (sw.ElapsedMilliseconds <= 1000)
                 strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
@@ -1288,18 +1322,18 @@ namespace RSABigInt
             //Assembly assem = typeof(BigInteger).Assembly;
             //BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
 
-            BigInteger p = c.RandPrime(5);
-            BigInteger q = c.RandPrime(5);
+            BigInteger p = c.RandPrime(10);
+            BigInteger q = c.RandPrime(10);
             BigInteger N = p * q;
 
-            WriteLine($"{p} x {q} = {N}");
+            WriteLine($"{p} \nx\n{q} =\n{N} \n");
 
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
-            c.Mersenne2(29);
+            //c.Mersenne2(20);
             //c.Smooth_Nums_Test(N.ToString());
             //c.RSA_Numbers();
-            //c.ModPow_Misc_Stuff();
+            c.ModPow_Misc_Stuff();
             //c.Pollard_Rho_Test();
 
             Write("\nPress Enter: ");
