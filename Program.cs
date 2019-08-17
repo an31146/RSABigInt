@@ -1322,11 +1322,15 @@ namespace RSABigInt
             //Assembly assem = typeof(BigInteger).Assembly;
             //BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
 
-            BigInteger p = c.RandPrime(10);
-            BigInteger q = c.RandPrime(10);
+            int PRIME_SIZE = 10;
+            if (args.Length == 1)
+                PRIME_SIZE = Int32.Parse(args[0]);
+
+            BigInteger p = c.RandPrime(PRIME_SIZE);
+            BigInteger q = c.RandPrime(PRIME_SIZE);
             BigInteger N = p * q;
 
-            WriteLine($"{p} \nx\n{q} =\n{N} \n");
+            WriteLine($"{p} \nx\n{q} \n= \n{N} \n");
 
             //c.TwinPrime_Test();
             //c.PrimeTriplet_Test();
