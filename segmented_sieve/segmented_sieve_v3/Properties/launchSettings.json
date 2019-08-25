@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "segmented_sieve_v3": {
+      "commandName": "Project",
+      "commandLineArgs": "1000000 32768"
+    }
+  }
+}

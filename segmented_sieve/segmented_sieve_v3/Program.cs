@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using static System.Console;
 
-#pragma warning disable IDE1006,IDE0017,IDE0040
+#pragma warning disable IDE1006,IDE0011,IDE0017,IDE0040,IDE0048
 
 namespace segmented_sieve_v3
 {
@@ -43,6 +43,7 @@ namespace segmented_sieve_v3
 
             List<int> primes = new List<int>();
             Dictionary<char, int> lastDigitCounts = new Dictionary<char, int>();
+
             for (int i = 2; i < sqrt; i++)
             {
                 if (is_prime[i])
@@ -55,12 +56,12 @@ namespace segmented_sieve_v3
                     else
                         lastDigitCounts[lastDigit]++;
 
-                    Write($"{i,12}\r");
+                    //Write($"{i,12}\r");
                 }
             }
 
-            ParallelOptions options = new ParallelOptions();
-            options.MaxDegreeOfParallelism = 4;
+            //ParallelOptions options = new ParallelOptions();
+            //options.MaxDegreeOfParallelism = 4;
             foreach (int l in primes)
             {
                 //Write($"{l,12}");
@@ -84,15 +85,27 @@ namespace segmented_sieve_v3
                         char lastDigit = (char)(i % 10 | 0x30);
                         lastDigitCounts[lastDigit]++;
 
-                        Write($"{i,12}\r");
+                        //Write($"{i,12}\r");
                     }
             }
             WriteLine($"\n\n\n{primes.Count} primes found.");
+
+            WriteLine("Counts / % of last digits in primes:");
+            int total_primes = 0;
+            foreach (int p in lastDigitCounts.Values)
+                total_primes += p;
+
+            foreach (char c in lastDigitCounts.Keys)
+            {
+                int p = lastDigitCounts.GetValueOrDefault(c);
+                WriteLine($"[{c}]: {p}\t{(float)p/total_primes*100.0f:F4} %");
+            }
+            WriteLine();
         }
         static void Main(string[] args)
         {
             // generate the primes below this number
-            int limit = 1000000000;
+            int limit = 100000000;
             Stopwatch clock = new Stopwatch();
 
             if (args.Length >= 1)
