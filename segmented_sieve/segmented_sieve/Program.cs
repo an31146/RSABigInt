@@ -5,6 +5,8 @@ using System.Diagnostics;
 
 using static System.Console;
 
+#pragma warning disable IDE1006,IDE0017,IDE0040
+
 namespace segmented_sieve
 {
     class Program

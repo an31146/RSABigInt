@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 
 using static System.Console;
 
-#pragma warning disable IDE0011,IDE0045,IDE0048,IDE1006,IDE1005,IDE1017,CS0219,CS01682
+#pragma warning disable IDE0011,IDE0040,IDE0045,IDE0048,IDE1006,IDE1005,IDE1017,CS0219,CS01682
 /*
  * IDE0011 Add braces to 'if' statement
+ * IDE0040 Accessibility modifiers
  * IDE0045 'if' statement can be simplified
  * IDE0048 Add parantheses for clarity
  * IDE1006 Suppress Naming Rule Violation IDE1006

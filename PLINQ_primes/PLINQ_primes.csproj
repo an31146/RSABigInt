@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="runtime.win-x64.Microsoft.NETCore.App" Version="2.2.3" />
+    <PackageReference Include="runtime.win-x64.Microsoft.NETCore.App" Version="2.2.6" />
   </ItemGroup>
 
 </Project>

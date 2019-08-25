@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 using static System.Console;
 
-#pragma warning disable IDE1006,IDE0017
+#pragma warning disable IDE1006,IDE0017,IDE0040
+
 namespace segmented_sieve_v2
 {
     class Program
@@ -47,38 +48,32 @@ namespace segmented_sieve_v2
                 if (is_prime[i])
                 {
                     primes.Add(i);
-                    //Write($"{i,5}");
+                    Write($"{i,12}");
                 }
             }
-            //WriteLine();
 
-            //List<int> extra_primes = new List<int>();
             ParallelOptions options = new ParallelOptions();
             options.MaxDegreeOfParallelism = 4;
-            //int extraPrimes = 0;
             Parallel.ForEach(primes, options, (int l) =>
             {
-                //Write($"{l,5}");
-
                 lock (is_prime)
                 {
                     for (int i = l * l; i <= limit; i += l)
                         is_prime[i] = false;
                 }
             });
-            //WriteLine();
 
-            Parallel.For(sqrt, limit, (int i) =>
-            //for (int i = sqrt; i < limit; i++)
+            //Parallel.For(sqrt, limit, (int i) =>
+            for (int i = sqrt; i < limit; i++)
             {
                 if (is_prime[i])
                     lock (primes)
                     {
                         primes.Add(i);
-                        //Write($"{i,10}");
+                        Write($"{i,12}");
                     }
-            });
-            WriteLine("\n\n{0} primes found.", primes.Count);
+            };
+            WriteLine("\n\n\n{primes.Count} primes found.");
             //cout << "twin prime constant: " << twin_prime_const << endl;
         }
         static void Main(string[] args)
@@ -101,7 +96,6 @@ namespace segmented_sieve_v2
             WriteLine("sieve time: {0} ms.\n", clock.ElapsedMilliseconds);
             Write("Press Enter: ");
             ReadLine();
-        }
-    }
-}
-#pragma warning restore IDE1006, IDE0017
+        }   // void Main
+    }   // class Program
+}   // namespace
