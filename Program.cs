@@ -608,12 +608,12 @@ namespace RSABigInt
 
         public void ModPow_Misc_Stuff()
         {
-            BigInteger N = RandPrime(7);
+            var N = RandPrime(7);
             double Temp = BigInteger.Log10(N);
             int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.618);
 
-            BigInteger T1 = BigInteger.Pow(new BigInteger(2), 1048576);         // 315653 digit number!
-            T1 = (new BigInteger(1) << 9689) - 1;
+            var T1 = BigInteger.Pow(new BigInteger(2), 1048576);         // 315653 digit number!
+            var T2 = (new BigInteger(1) << 9689) - 1;
             double LogT1 = BigInteger.Log10(T1);
 
             //StreamWriter file1 = new StreamWriter("output.txt", false);
@@ -621,16 +621,16 @@ namespace RSABigInt
             //file1.Close();
 
             Stopwatch sw = new Stopwatch();
-            BigInteger T2;
+            BigInteger T3;
             sw.Start();
             {
-                T2 = BigInteger.ModPow(new BigInteger(13), T1 - 1, T1);
+                T3 = BigInteger.ModPow(new BigInteger(13), T1, T2);
             }
             sw.Stop();
 
             WriteLine("ModPow time: {0} ms\n", sw.ElapsedMilliseconds);                // ModPow time: 12453 ms
 
-            double LogT2 = BigInteger.Log10(T2);
+            double LogT3 = BigInteger.Log10(T3);
             string strNormalizedIntegerTwo = "2" + new String('0', 100000);
 
             SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
@@ -1400,8 +1400,8 @@ namespace RSABigInt
 
             //clsMBI.TwinPrime_Test();
             //clsMBI.PrimeTriplet_Test();
-            clsMBI.Mersenne2(23);
-            //clsMBI.ModPow_Misc_Stuff();
+            //clsMBI.Mersenne2(23);
+            clsMBI.ModPow_Misc_Stuff();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.RSA_Numbers();
             //clsMBI.Smooth_Nums_Test(N.ToString());
