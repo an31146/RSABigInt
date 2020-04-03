@@ -608,11 +608,11 @@ namespace RSABigInt
 
         public void ModPow_Misc_Stuff()
         {
-            var N = RandPrime(7);
+            var N = RandPrime(29);
             double Temp = BigInteger.Log10(N);
             int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.618);
 
-            var T1 = BigInteger.Pow(new BigInteger(2), 1048576);         // 315653 digit number!
+            var T1 = BigInteger.Pow(new BigInteger(2), 1048576);                        // 315653 digit number!
             var T2 = (new BigInteger(1) << 9689) - 1;
             double LogT1 = BigInteger.Log10(T1);
 
@@ -624,14 +624,21 @@ namespace RSABigInt
             BigInteger T3;
             sw.Start();
             {
-                T3 = BigInteger.ModPow(new BigInteger(13), T1, T2);
+                T3 = BigInteger.ModPow(new BigInteger(31), T1, T2);
             }
             sw.Stop();
 
-            WriteLine("ModPow time: {0} ms\n", sw.ElapsedMilliseconds);                // ModPow time: 12453 ms
+                                                                                        // This could take a few hours!
+            WriteLine("ModPow time: {0} ms\n", sw.ElapsedMilliseconds);                 // ModPow time: 12453 ms
 
-            double LogT3 = BigInteger.Log10(T3);
-            string strNormalizedIntegerTwo = "2" + new String('0', 100000);
+            sw.Restart();
+            {
+                double LogT3 = BigInteger.Log10(T3);
+            }
+            sw.Stop();
+            WriteLine("Log10(T3) time: {0} ms\n", sw.ElapsedMilliseconds);                 // ModPow time: 12453 ms
+
+            string strNormalizedIntegerTwo = "2" + new String('0', 1000000);
 
             SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
             Sqrt(BigInteger.Parse(strNormalizedIntegerTwo));
@@ -765,8 +772,11 @@ namespace RSABigInt
             // TO-DO: Parallelize the loops!
             //for (uint p = 0; p < matrix.GetLength(0); p++)                  // number of rows
             sw.Start();
-            ParallelLoopResult res = Parallel.For(0, matrix.GetLength(0), parallelOptions, (p, loopState) =>
-            //for (uint p = 0; p < matrix.GetLength(0); p++)                    // number of rows
+            /*
+             * DO NOT parallelize the outer for p loop - somehow breaks elimination process!
+             */
+            //ParallelLoopResult res = Parallel.For(0, matrix.GetLength(0), parallelOptions, (p, loopState) =>
+            for (uint p = 0; p < matrix.GetLength(0); p++)                    // number of rows
             {
                 // find pivot row and swap 
                 for (long i = p + 1; i < matrix.GetLength(0); i++)              // 
@@ -797,7 +807,7 @@ namespace RSABigInt
                         }
                     }
                 } // for i
-            });     // Parallel.For p
+            }     // for p - NOT: Parallel.For p
             sw.Stop();
 #if DEBUG
             string strElapsed;
@@ -1062,7 +1072,7 @@ namespace RSABigInt
 
             // prime number factors
             Factor_Base(N1);
-            uint N_smooths = (uint)(factor_base.Length * 1.01d);
+            uint N_smooths = (uint)(factor_base.Length * 1.1d);
             if ((N_smooths & 1) == 1)
                 N_smooths++;                // make it even
             Qx = new smooth_num[N_smooths];
@@ -1132,7 +1142,7 @@ namespace RSABigInt
 
         public void Smooth_Nums_Test(string S1)
         {
-            BigInteger N;
+            BigInteger N = BigInteger.Parse(S1);
 #region _historical_timings
             //N = BigInteger.Parse("21818232425302600378616644247667406319");
             // 2495.8 s, 2620 primes
@@ -1276,10 +1286,10 @@ namespace RSABigInt
 
             // "9251887165329150354056716315122396153271557067859755802728429989905317141127"
 #endregion
-            N = BigInteger.Parse(S1);
-
             double Temp = BigInteger.Log(N);
-            uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.615);        // twiddle-factor
+            WriteLine("Log(N): {0:F12}", Temp);
+            uint sieve_max = (uint)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.54);        // twiddle-factor
+            WriteLine("sieve_max: {0}", sieve_max);
             prime_sieve(sieve_max);
 
             //uint SieveLimit = (uint)Math.Exp(8.5 + 0.015 * Temp);
@@ -1392,8 +1402,8 @@ namespace RSABigInt
             //Assembly assem = typeof(BigInteger).Assembly;
             //BigInteger p = (BigInteger)assem.CreateInstance("System.Numerics.BigInteger");
 
-            BigInteger p = clsMBI.RandPrime(3);
-            BigInteger q = clsMBI.RandPrime(3);
+            BigInteger p = clsMBI.RandPrime(2);
+            BigInteger q = clsMBI.RandPrime(2);
             BigInteger N = p * q;
 
             WriteLine($"{p} x {q} = {N}\n");
@@ -1401,10 +1411,10 @@ namespace RSABigInt
             //clsMBI.TwinPrime_Test();
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne2(23);
-            clsMBI.ModPow_Misc_Stuff();
+            //clsMBI.ModPow_Misc_Stuff();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.RSA_Numbers();
-            //clsMBI.Smooth_Nums_Test(N.ToString());
+            clsMBI.Smooth_Nums_Test(N.ToString());
 
             Write("\nPress Enter: ");
             ReadLine();
