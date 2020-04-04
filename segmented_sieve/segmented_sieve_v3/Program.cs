@@ -98,7 +98,7 @@ namespace segmented_sieve_v3
             foreach (char c in lastDigitCounts.Keys)
             {
                 int p = lastDigitCounts.GetValueOrDefault(c);
-                WriteLine($"[{c}]: {p}\t{(float)p/total_primes*100.0f:F4} %");
+                WriteLine($"[{c}]: {p,6:D0}\t{(float)p/total_primes,8:P4}");
             }
             WriteLine();
         }

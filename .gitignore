@@ -259,3 +259,4 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/segmented_sieve/segmented_sieve_v3/Properties/launchSettings.json
