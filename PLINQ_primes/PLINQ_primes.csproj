@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>PLINQ_primes</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>PLINQ_primes</PackageId>
@@ -13,9 +13,5 @@
     <AssemblyOriginatorKeyFile>PLINQ_primes.pfx.snk</AssemblyOriginatorKeyFile>
     <Version>1.2.0</Version>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="runtime.win-x64.Microsoft.NETCore.App" Version="2.2.3" />
-  </ItemGroup>
 
 </Project>
