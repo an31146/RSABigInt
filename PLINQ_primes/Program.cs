@@ -12,7 +12,7 @@ namespace PLINQ_primes
     public class Program
     {
         private static BitArray prime_bits;
-        const int LIMIT = 10000000;
+        private const int LIMIT = 10000000;
         private static List<int> _primes;
 
         static void sieve(int S)
@@ -78,7 +78,8 @@ namespace PLINQ_primes
             int[] primes = parallelQuery.ToArray();
             sw1.Stop();
 
-            WriteLine("\n\n1. Elapsed time: {0} ms", sw1.ElapsedMilliseconds);
+            WriteLine("\n primes.Length: {0}", primes.Length);
+            WriteLine("\n1. Elapsed time: {0} ms", sw1.ElapsedMilliseconds);
 
             prime_bits = new BitArray(limit);
             prime_bits.SetAll(false);
@@ -95,7 +96,7 @@ namespace PLINQ_primes
             sw1.Stop();
 
             WriteLine("\nprimes: {0}", count);
-            WriteLine("\n\n2. Elapsed time: {0} ms", sw1.ElapsedMilliseconds);
+            WriteLine("\n2. Elapsed time: {0} ms", sw1.ElapsedMilliseconds);
             Write("\nPress Enter: ");
             ReadLine();
         }
@@ -114,6 +115,20 @@ primes: 50847534
 
 
 2. Elapsed time: 448 ms
+
+Press Enter:
+*/
+
+/*
+C:\Google Drive\Projects\RSABigInt\PLINQ_primes>dotnet exec bin\Debug\netcoreapp2.2\PLINQ_primes.dll 420000000
+
+ primes.Length: 22344479
+
+1. Elapsed time: 175623 ms
+
+primes: 22344479
+
+2. Elapsed time: 234 ms
 
 Press Enter:
 */
