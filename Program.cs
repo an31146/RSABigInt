@@ -10,7 +10,7 @@ using System.Threading.Algorithms;
 
 using static System.Console;
 
-#pragma warning disable IDE1006,IDE1005,IDE1017,CS0219,CS0168
+#pragma warning disable IDE0055,IDE1006,IDE1005,IDE1017,CS0219,CS0168
 /*
  * IDE1006 Suppress Naming Rule Violation IDE1006
  * IDE1005 Delegate invocation can be simplified
@@ -68,13 +68,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", sw.Elapsed.Seconds);
-
-            WriteLine("prime_sieve time took: {0}", strElapsed);
+            WriteLine("prime_sieve time took: {0}\n", FormatTimespan(sw.Elapsed));
 #endif
         }
 
@@ -176,13 +170,7 @@ namespace RSABigInt
             }
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
-
-            WriteLine($"RandPrime({size})\nElapsed time: {strElapsed}\n");
+            WriteLine($"RandPrime({size})\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
 #endif
             return rnd;
         }
@@ -238,20 +226,14 @@ namespace RSABigInt
             sw.Stop();
 
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Seconds);
-
-            WriteLine($"\nSquareRoot({n})\nElapsed time: {strElapsed}\n");
+            WriteLine($"\nSquareRoot({n})\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
 #endif
 
             return q;
         }
 
-        // Why is this function 3 times(!) quicker than the one above?
-        public static BigInteger Sqrt(BigInteger x)
+        // Why is this function 3 times(!) quicker than the one above?  Number of operations used.
+        public BigInteger Sqrt(BigInteger x)
         {
             BigInteger div = BigInteger.One;
             div = BigInteger.Add(div, BigInteger.One);
@@ -273,13 +255,7 @@ namespace RSABigInt
             }
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", sw.Elapsed.TotalSeconds);
-
-            WriteLine($"\nSquareRoot({y})\nElapsed time: {strElapsed}\n");
+            WriteLine($"\nSquareRoot({x})\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
 #endif
             return y;
         }
@@ -295,13 +271,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", sw.Elapsed.Seconds);
-
-            WriteLine("\nFactorial() Elapsed time: {0}\n", strElapsed);
+            WriteLine("\nFactorial() Elapsed time: {0}\n", FormatTimespan(sw.Elapsed));
 #endif
             return fact;
         }
@@ -322,13 +292,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", sw.Elapsed.Seconds);
-
-            WriteLine("\nFactorial() Elapsed time: {0}\n", strElapsed);
+            WriteLine("\nFactorial() Elapsed time: {0}\n", FormatTimespan(sw.Elapsed));
 #endif
             return Fn_plus_one;
         }
@@ -436,6 +400,17 @@ namespace RSABigInt
             string str_dt = String.Format("[{0} {1}]", dt.ToLongDateString(), dt.ToLongTimeString());
             WriteLine("{0}", str_dt);
             F.WriteLine(str_dt);
+        }
+
+        public string FormatTimespan(TimeSpan ts)
+        {
+            string strElapsed;
+            if (ts.Milliseconds <= 1000)
+                strElapsed = String.Format("{0} ms", ts.Milliseconds);
+            else
+                strElapsed = String.Format("{0:F1} s", ts.Seconds);
+            
+            return strElapsed;
         }
 
         public void TwinPrime_Test()
@@ -636,7 +611,7 @@ namespace RSABigInt
                 double LogT3 = BigInteger.Log10(T3);
             }
             sw.Stop();
-            WriteLine("Log10(T3) time: {0} ms\n", sw.ElapsedMilliseconds);                 // ModPow time: 12453 ms
+            WriteLine("Log10(T3) elapsed time: {0} ms\n", sw.ElapsedMilliseconds);                 // ModPow time: 12453 ms
 
             string strNormalizedIntegerTwo = "2" + new String('0', 1000000);
 
@@ -748,13 +723,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
-
-            string strValue = $"Process_Matrix() Elapsed time: {strElapsed}\n";
+            string strValue = $"Process_Matrix() Elapsed time: {FormatTimespan(sw.Elapsed)}\n";
             WriteLine(strValue);
 #endif
         }
@@ -810,13 +779,7 @@ namespace RSABigInt
             }     // for p - NOT: Parallel.For p
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
-
-            string strValue = $"Row adds: {row_adds}\nRow swaps: {row_swaps}\nElapsed time: {strElapsed}\n";
+            string strValue = $"Row adds: {row_adds}\nRow swaps: {row_swaps}\nElapsed time: {FormatTimespan(sw.Elapsed)}\n";
             WriteLine(strValue);
 #endif
         }
@@ -900,13 +863,7 @@ namespace RSABigInt
             DateTime dt1 = DateTime.Now;
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", sw.Elapsed.Seconds);
-
-            WriteLine($"Calculate_Factors({N1})\nElapsed time: {strElapsed}");
+            WriteLine($"Calculate_Factors({N1})\nElapsed time: {0}", FormatTimespan(sw.Elapsed));
             WriteLine($"dt1 - dt0 = {dt1.Subtract(dt0).Seconds} s\n");
 #endif
         }   // CalculateFactors
@@ -971,13 +928,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", (float)sw.Elapsed.Milliseconds / 1000);
-
-            WriteLine($"Calculate_Factors_Task({N1})\nElapsed time: {strElapsed}\n");
+            WriteLine($"Calculate_Factors_Task({N1})\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
 #endif
         }
 
@@ -1072,7 +1023,7 @@ namespace RSABigInt
 
             // prime number factors
             Factor_Base(N1);
-            uint N_smooths = (uint)(factor_base.Length * 1.1d);
+            uint N_smooths = (uint)(factor_base.Length * 1.01d);
             if ((N_smooths & 1) == 1)
                 N_smooths++;                // make it even
             Qx = new smooth_num[N_smooths];
@@ -1129,21 +1080,16 @@ namespace RSABigInt
                 );
                 Write("{0} smooth numbers\r", k);
             }   // while (k < factor_base.Length) 
-#if DEBUG
             sw.Stop();
-            string strElapsed;
-            if (sw.ElapsedMilliseconds <= 1000)
-                strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-            else
-                strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
-            WriteLine("Collected {0} smooth numbers.\nElapsed time: {1}\n", k, strElapsed);
+#if DEBUG
+            WriteLine($"Collected {k} smooth numbers.\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
 #endif
         }   // Smooth_Numbers2
 
         public void Smooth_Nums_Test(string S1)
         {
             BigInteger N = BigInteger.Parse(S1);
-#region _historical_timings
+            #region _historical_timings
             //N = BigInteger.Parse("21818232425302600378616644247667406319");
             // 2495.8 s, 2620 primes
             // 7217.7 s, 2122 primes, 4244 smooth numbers
