@@ -1,5 +1,6 @@
 ﻿//#define _DEBUG
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -68,7 +69,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            WriteLine("prime_sieve time took: {0}\n", FormatTimespan(sw.Elapsed));
+            WriteLine("prime_sieve time took: {0}\n", FormatTimeSpan(sw.Elapsed));
 #endif
         }
 
@@ -170,7 +171,7 @@ namespace RSABigInt
             }
             sw.Stop();
 #if DEBUG
-            WriteLine($"RandPrime({size})\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
+            WriteLine("RandPrime({0})\nElapsed time: {1}\n", size, FormatTimeSpan(sw.Elapsed));
 #endif
             return rnd;
         }
@@ -226,7 +227,7 @@ namespace RSABigInt
             sw.Stop();
 
 #if DEBUG
-            WriteLine($"\nSquareRoot({n})\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
+            WriteLine("\nSquareRoot({0})\nElapsed time: {1}\n", n, FormatTimeSpan(sw.Elapsed));
 #endif
 
             return q;
@@ -255,7 +256,7 @@ namespace RSABigInt
             }
             sw.Stop();
 #if DEBUG
-            WriteLine($"\nSquareRoot({x})\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
+            WriteLine("\nSquareRoot({0})\nElapsed time: {1}\n", x, FormatTimeSpan(sw.Elapsed));
 #endif
             return y;
         }
@@ -271,7 +272,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            WriteLine("\nFactorial() Elapsed time: {0}\n", FormatTimespan(sw.Elapsed));
+            WriteLine("\nFactorial({0}) Elapsed time: {1}\n", n, FormatTimeSpan(sw.Elapsed));
 #endif
             return fact;
         }
@@ -292,7 +293,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            WriteLine("\nFactorial() Elapsed time: {0}\n", FormatTimespan(sw.Elapsed));
+            WriteLine("\nFactorial({0}) Elapsed time: {1}\n", n, FormatTimeSpan(sw.Elapsed));
 #endif
             return Fn_plus_one;
         }
@@ -345,13 +346,15 @@ namespace RSABigInt
 
         bool MillerRabin(BigInteger n, int k)
         {
-            int[] base_primes = 	{  2,   3,   5,   7,  11,  13,  17,  19,
-	                                  23,  29,  31,  37,  41,  43,  47,  53,
-	                                  59,  61,  67,  71,  73,  79,  83,  89,
-	                                  97, 101, 103, 107, 109, 113, 127, 131,
-	                                 137, 139, 149, 151, 157, 163, 167, 173,
-	                                 179, 181, 191, 193, 197, 199, 211, 223,
-	                                 227, 229, 233, 239, 241, 251};
+            int[] base_primes = {
+                  2,   3,   5,   7,  11,  13,  17,  19,
+	             23,  29,  31,  37,  41,  43,  47,  53,
+	             59,  61,  67,  71,  73,  79,  83,  89,
+	             97, 101, 103, 107, 109, 113, 127, 131,
+	            137, 139, 149, 151, 157, 163, 167, 173,
+	            179, 181, 191, 193, 197, 199, 211, 223,
+	            227, 229, 233, 239, 241, 251
+            };
             BigInteger r = n - 1;
             int s = 0;
 
@@ -402,13 +405,26 @@ namespace RSABigInt
             F.WriteLine(str_dt);
         }
 
-        public string FormatTimespan(TimeSpan ts)
+        public string ByteArrayStruct(byte[] byte_array)
+        {
+            Stack<byte> reversed_bytes = new Stack<byte>();
+            // Output byte [] structure suitable for BigInteger.cs
+            foreach (byte b in byte_array)
+                reversed_bytes.Push(b);
+
+            string str_bytes = "";
+            foreach (byte b in reversed_bytes)
+                str_bytes += String.Format($"(byte)0x{b:x2}, ");
+            return str_bytes;
+        }
+
+        public string FormatTimeSpan(TimeSpan ts)
         {
             string strElapsed;
-            if (ts.Milliseconds <= 1000)
+            if (ts.TotalMilliseconds < 1000.0d )
                 strElapsed = String.Format("{0} ms", ts.Milliseconds);
             else
-                strElapsed = String.Format("{0:F1} s", ts.Seconds);
+                strElapsed = String.Format("{0:F1} s", ts.TotalSeconds);
             
             return strElapsed;
         }
@@ -587,9 +603,94 @@ namespace RSABigInt
             double Temp = BigInteger.Log10(N);
             int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.618);
 
+            WriteLine( ByteArrayStruct(N.ToByteArray()) );
+
             var T1 = BigInteger.Pow(new BigInteger(2), 1048576);                        // 315653 digit number!
             var T2 = (new BigInteger(1) << 9689) - 1;
             double LogT1 = BigInteger.Log10(T1);
+            var P1 = BigInteger.Parse("8949969815784082905285113653565030657117978813653332368993611264200624281180341263589905784897611545421273844719391941113720317582959695290277880367278839");
+
+            bool bIsPrime = MillerRabin(P1, 13);
+            WriteLine($"MillerRabin({P1}, 13): {bIsPrime}\n");
+
+            var P2 = new BigInteger(new byte[] { 
+                (byte)0x95, (byte)0xe3, (byte)0x5d, (byte)0x14, (byte)0xe5, (byte)0x30, 
+                (byte)0x1e, (byte)0xbd, (byte)0x76, (byte)0x92, (byte)0xa1, (byte)0x26, 
+                (byte)0xe7, (byte)0xfa, (byte)0xe2, (byte)0xef, (byte)0xfd, (byte)0x22, 
+                (byte)0xea, (byte)0xb7, (byte)0x1b, (byte)0x7e, (byte)0xd2, (byte)0x8d, 
+                (byte)0x95, (byte)0x38, (byte)0x46, (byte)0xb7, (byte)0x67, (byte)0xc2, 
+                (byte)0xbb, (byte)0xff, (byte)0x3a, (byte)0x0f, (byte)0xf9, (byte)0x4e, 
+                (byte)0x71, (byte)0xcb, (byte)0x4c, (byte)0xe1, (byte)0x23, (byte)0xff, 
+                (byte)0xab, (byte)0xdf, (byte)0x4f, (byte)0x05, (byte)0x4d, (byte)0x86, 
+                (byte)0xa8, (byte)0xd5, (byte)0x0e, (byte)0x0a, (byte)0x81, (byte)0xae, 
+                (byte)0x16, (byte)0x84, (byte)0xb5, (byte)0x08, (byte)0x6b, (byte)0xef, 
+                (byte)0x68, (byte)0x30, (byte)0x01, (byte)0xe7,
+                (byte)0x00
+            });
+
+            bIsPrime = MillerRabin(P2, 13);
+            WriteLine($"MillerRabin({P2}, 13): {bIsPrime}\n");
+
+            var P3 = new BigInteger(new byte[] {
+                (byte)0x81, (byte)0x3f, (byte)0x9c, (byte)0x81, (byte)0x31, (byte)0x78,
+                (byte)0x58, (byte)0xa1, (byte)0xcd, (byte)0xbd, (byte)0xdd, (byte)0xdb,
+                (byte)0xc9, (byte)0xa7, (byte)0xb1, (byte)0xcf, (byte)0x53, (byte)0x92,
+                (byte)0x26, (byte)0x80, (byte)0x53, (byte)0x89, (byte)0xe5, (byte)0x80,
+                (byte)0x26, (byte)0x60, (byte)0x23, (byte)0x6a, (byte)0x79, (byte)0xc8,
+                (byte)0x1f, (byte)0xf6, (byte)0xb2, (byte)0x63, (byte)0x87, (byte)0x2e,
+                (byte)0x74, (byte)0xe2, (byte)0x6c, (byte)0x0b, (byte)0xfb, (byte)0x2e,
+                (byte)0xb6, (byte)0xe6, (byte)0xa0, (byte)0x02, (byte)0xb1, (byte)0x69,
+                (byte)0x71, (byte)0xc7, (byte)0x47, (byte)0xe9, (byte)0x44, (byte)0x9d,
+                (byte)0x43, (byte)0x1a, (byte)0x86, (byte)0x39, (byte)0xf5, (byte)0x2a,
+                (byte)0x9b, (byte)0xe8, (byte)0x07, (byte)0xda,
+                (byte)0x00
+                /*
+                (byte)0xc5, (byte)0x74, (byte)0x8c, (byte)0xd5, (byte)0x3d, (byte)0xd3,
+                (byte)0x52, (byte)0x40, (byte)0x06, (byte)0x69, (byte)0xbb, (byte)0x82,
+                (byte)0xe2, (byte)0x21, (byte)0x66, (byte)0x63, (byte)0xd8, (byte)0xef,
+                (byte)0xf2, (byte)0xe3, (byte)0x28, (byte)0x3f, (byte)0x1a, (byte)0xd8,
+                (byte)0xf1, (byte)0x07, (byte)0xad, (byte)0x9f, (byte)0xea, (byte)0x8e,
+                (byte)0xb8, (byte)0x39, (byte)0x2a, (byte)0x94, (byte)0x42, (byte)0xda,
+                (byte)0x0c, (byte)0xb9, (byte)0x63, (byte)0xe4, (byte)0xe2, (byte)0x8b,
+                (byte)0x9c, (byte)0x15, (byte)0x08, (byte)0x12, (byte)0x7c, (byte)0xde,
+                (byte)0xc8, (byte)0x6c, (byte)0x30, (byte)0xe9, (byte)0x5f, (byte)0x9e,
+                (byte)0xc1, (byte)0xbe, (byte)0x92, (byte)0x34, (byte)0xf8, (byte)0xaf,
+                (byte)0x7a, (byte)0x23, (byte)0xfd, (byte)0x93,
+                (byte)0x00*/
+            });
+
+            P3 = new BigInteger(new byte[] {
+                (byte)0x37, (byte)0x61, (byte)0x8c, (byte)0x03, (byte)0x96, (byte)0xed,
+                (byte)0x2d, (byte)0x2b, (byte)0x59, (byte)0x09, (byte)0xea, (byte)0xa7,
+                (byte)0xfd, (byte)0x91, (byte)0x95, (byte)0x90, (byte)0x57, (byte)0x34,
+                (byte)0x73, (byte)0x82, (byte)0x31, (byte)0x31, (byte)0x06, (byte)0x8b,
+                (byte)0xa4, (byte)0x03, (byte)0xe7, (byte)0x3b, (byte)0x58, (byte)0x10,
+                (byte)0xf4, (byte)0x08, (byte)0xe9, (byte)0x3c, (byte)0x4b, (byte)0x8f,
+                (byte)0x2e, (byte)0xf3, (byte)0xfa, (byte)0x7f, (byte)0x11, (byte)0x90,
+                (byte)0xd6, (byte)0xd2, (byte)0x40, (byte)0xc3, (byte)0xa2, (byte)0x45,
+                (byte)0x8d, (byte)0xa1, (byte)0x56, (byte)0x98, (byte)0x6b, (byte)0x7a,
+                (byte)0x04, (byte)0x81, (byte)0xd3, (byte)0x50, (byte)0x39, (byte)0xe7,
+                (byte)0x32, (byte)0xfe, (byte)0x01, (byte)0xf3,
+                (byte)0x00
+            });
+
+            P3 = new BigInteger(new byte[]
+            {
+                (byte)0x9d, (byte)0x4e, (byte)0x78, (byte)0x54, (byte)0x43, (byte)0x1e,
+                (byte)0x1f, (byte)0xc8, (byte)0x71, (byte)0x42, (byte)0x71, (byte)0xbe,
+                (byte)0xc3, (byte)0x26, (byte)0x9e, (byte)0xbe, (byte)0xf4, (byte)0x0b,
+                (byte)0x15, (byte)0x5c, (byte)0x52, (byte)0x5a, (byte)0x80, (byte)0x00,
+                (byte)0x7a, (byte)0x80, (byte)0x56, (byte)0x33, (byte)0xe8, (byte)0x42,
+                (byte)0x22, (byte)0x3e, (byte)0x50, (byte)0x2f, (byte)0xf7, (byte)0x6a,
+                (byte)0xf7, (byte)0x85, (byte)0x13, (byte)0xff, (byte)0xd5, (byte)0x93,
+                (byte)0xfd, (byte)0x8b, (byte)0x44, (byte)0xc5, (byte)0xf4, (byte)0x10,
+                (byte)0x97, (byte)0x04, (byte)0x5e, (byte)0xd4, (byte)0x17, (byte)0x85,
+                (byte)0x47, (byte)0xc2, (byte)0xd5, (byte)0xc1, (byte)0xe0, (byte)0xaf,
+                (byte)0x0e, (byte)0x4f, (byte)0x8a, (byte)0x9e,
+                (byte)0x00
+            });
+            bIsPrime = MillerRabin(P3, 13);
+            WriteLine($"MillerRabin({P3}, 13): {bIsPrime}\n");
 
             //StreamWriter file1 = new StreamWriter("output.txt", false);
             //file1.WriteLine(T1.ToString());
@@ -599,12 +700,12 @@ namespace RSABigInt
             BigInteger T3;
             sw.Start();
             {
-                T3 = BigInteger.ModPow(new BigInteger(31), T1, T2);
+                T3 = BigInteger.ModPow(new BigInteger(31), T2, T2);
             }
             sw.Stop();
 
                                                                                         // This could take a few hours!
-            WriteLine("ModPow time: {0} ms\n", sw.ElapsedMilliseconds);                 // ModPow time: 12453 ms
+            WriteLine("ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));                 // ModPow time: 12453 ms
 
             sw.Restart();
             {
@@ -613,10 +714,10 @@ namespace RSABigInt
             sw.Stop();
             WriteLine("Log10(T3) elapsed time: {0} ms\n", sw.ElapsedMilliseconds);                 // ModPow time: 12453 ms
 
-            string strNormalizedIntegerTwo = "2" + new String('0', 1000000);
+            string strNormalizedIntegerTwo = "2" + new String('0', 10000);
 
-            SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
-            Sqrt(BigInteger.Parse(strNormalizedIntegerTwo));
+            WriteLine(SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo)) + "\n");
+            WriteLine(Sqrt(BigInteger.Parse(strNormalizedIntegerTwo)) + "\n");
             
             //int n = 13017;  //7921;   // 1789;   // 3607;
             //WriteLine("fact({1}) = {0}\n", Factorial(n).ToString(), n);
@@ -723,7 +824,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            string strValue = $"Process_Matrix() Elapsed time: {FormatTimespan(sw.Elapsed)}\n";
+            string strValue = $"Process_Matrix() Elapsed time: {FormatTimeSpan(sw.Elapsed)}\n";
             WriteLine(strValue);
 #endif
         }
@@ -779,7 +880,7 @@ namespace RSABigInt
             }     // for p - NOT: Parallel.For p
             sw.Stop();
 #if DEBUG
-            string strValue = $"Row adds: {row_adds}\nRow swaps: {row_swaps}\nElapsed time: {FormatTimespan(sw.Elapsed)}\n";
+            string strValue = $"Row adds: {row_adds}\nRow swaps: {row_swaps}\nElapsed time: {FormatTimeSpan(sw.Elapsed)}\n";
             WriteLine(strValue);
 #endif
         }
@@ -863,7 +964,7 @@ namespace RSABigInt
             DateTime dt1 = DateTime.Now;
             sw.Stop();
 #if DEBUG
-            WriteLine($"Calculate_Factors({N1})\nElapsed time: {0}", FormatTimespan(sw.Elapsed));
+            WriteLine("Calculate_Factors({0})\nElapsed time: {1}", N1, FormatTimeSpan(sw.Elapsed));
             WriteLine($"dt1 - dt0 = {dt1.Subtract(dt0).Seconds} s\n");
 #endif
         }   // CalculateFactors
@@ -928,7 +1029,7 @@ namespace RSABigInt
 
             sw.Stop();
 #if DEBUG
-            WriteLine($"Calculate_Factors_Task({N1})\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
+            WriteLine("Calculate_Factors_Task({0})\nElapsed time: {1}\n", N1, FormatTimeSpan(sw.Elapsed));
 #endif
         }
 
@@ -1082,7 +1183,7 @@ namespace RSABigInt
             }   // while (k < factor_base.Length) 
             sw.Stop();
 #if DEBUG
-            WriteLine($"Collected {k} smooth numbers.\nElapsed time: {0}\n", FormatTimespan(sw.Elapsed));
+            WriteLine("Collected {0} smooth numbers.\nElapsed time: {1}\n", k, FormatTimeSpan(sw.Elapsed));
 #endif
         }   // Smooth_Numbers2
 
@@ -1357,10 +1458,10 @@ namespace RSABigInt
             //clsMBI.TwinPrime_Test();
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne2(23);
-            //clsMBI.ModPow_Misc_Stuff();
+            clsMBI.ModPow_Misc_Stuff();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.RSA_Numbers();
-            clsMBI.Smooth_Nums_Test(N.ToString());
+            //clsMBI.Smooth_Nums_Test(N.ToString());
 
             Write("\nPress Enter: ");
             ReadLine();
