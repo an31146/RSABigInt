@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Algorithms;
 
 using static System.Console;
 
@@ -30,7 +28,8 @@ namespace RSABigInt
         private Random _randObj;
         private uint[] primes;               
         private uint[] factor_base;          //
-        private uint[,] matrix;              // 2-dimensional matrix
+                                             // TO-DO: Make this a System.Collections.Generic.BitArray
+        private uint[,] matrix;              // 2-dimensional matrix comprising of smooth num exponents mod 2
 
         private struct smooth_num
         {
@@ -234,6 +233,7 @@ namespace RSABigInt
         }
 
         // Why is this function 3 times(!) quicker than the one above?  Number of operations used.
+        // 10-Apr-20 Actually - difference is negligible, 1490s vs. 1497s
         public BigInteger Sqrt(BigInteger x)
         {
             BigInteger div = BigInteger.One;
@@ -563,9 +563,9 @@ namespace RSABigInt
         public void RSA_Numbers()
         {
             BigInteger P = RandPrime(10);
-            BigInteger Q = PrimeTriplet(10);
+            BigInteger Q = RandPrime(10);
             BigInteger N = P * Q;
-            BigInteger e = new BigInteger(65537);
+            BigInteger e = new BigInteger(0x10001);
             BigInteger phiN = (P - 1) * (Q - 1);
             //WriteLine("GCD({0}, \n    {1}) = {2}\n", phiN.ToString(), N, BigInteger.GreatestCommonDivisor(phiN, N));
 
@@ -603,7 +603,7 @@ namespace RSABigInt
             double Temp = BigInteger.Log10(N);
             int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.618);
 
-            WriteLine( ByteArrayStruct(N.ToByteArray()) );
+            WriteLine(ByteArrayStruct(N.ToByteArray()));
 
             var T1 = BigInteger.Pow(new BigInteger(2), 1048576);                        // 315653 digit number!
             var T2 = (new BigInteger(1) << 9689) - 1;
@@ -613,17 +613,17 @@ namespace RSABigInt
             bool bIsPrime = MillerRabin(P1, 13);
             WriteLine($"MillerRabin({P1}, 13): {bIsPrime}\n");
 
-            var P2 = new BigInteger(new byte[] { 
-                (byte)0x95, (byte)0xe3, (byte)0x5d, (byte)0x14, (byte)0xe5, (byte)0x30, 
-                (byte)0x1e, (byte)0xbd, (byte)0x76, (byte)0x92, (byte)0xa1, (byte)0x26, 
-                (byte)0xe7, (byte)0xfa, (byte)0xe2, (byte)0xef, (byte)0xfd, (byte)0x22, 
-                (byte)0xea, (byte)0xb7, (byte)0x1b, (byte)0x7e, (byte)0xd2, (byte)0x8d, 
-                (byte)0x95, (byte)0x38, (byte)0x46, (byte)0xb7, (byte)0x67, (byte)0xc2, 
-                (byte)0xbb, (byte)0xff, (byte)0x3a, (byte)0x0f, (byte)0xf9, (byte)0x4e, 
-                (byte)0x71, (byte)0xcb, (byte)0x4c, (byte)0xe1, (byte)0x23, (byte)0xff, 
-                (byte)0xab, (byte)0xdf, (byte)0x4f, (byte)0x05, (byte)0x4d, (byte)0x86, 
-                (byte)0xa8, (byte)0xd5, (byte)0x0e, (byte)0x0a, (byte)0x81, (byte)0xae, 
-                (byte)0x16, (byte)0x84, (byte)0xb5, (byte)0x08, (byte)0x6b, (byte)0xef, 
+            var P2 = new BigInteger(new byte[] {
+                (byte)0x95, (byte)0xe3, (byte)0x5d, (byte)0x14, (byte)0xe5, (byte)0x30,
+                (byte)0x1e, (byte)0xbd, (byte)0x76, (byte)0x92, (byte)0xa1, (byte)0x26,
+                (byte)0xe7, (byte)0xfa, (byte)0xe2, (byte)0xef, (byte)0xfd, (byte)0x22,
+                (byte)0xea, (byte)0xb7, (byte)0x1b, (byte)0x7e, (byte)0xd2, (byte)0x8d,
+                (byte)0x95, (byte)0x38, (byte)0x46, (byte)0xb7, (byte)0x67, (byte)0xc2,
+                (byte)0xbb, (byte)0xff, (byte)0x3a, (byte)0x0f, (byte)0xf9, (byte)0x4e,
+                (byte)0x71, (byte)0xcb, (byte)0x4c, (byte)0xe1, (byte)0x23, (byte)0xff,
+                (byte)0xab, (byte)0xdf, (byte)0x4f, (byte)0x05, (byte)0x4d, (byte)0x86,
+                (byte)0xa8, (byte)0xd5, (byte)0x0e, (byte)0x0a, (byte)0x81, (byte)0xae,
+                (byte)0x16, (byte)0x84, (byte)0xb5, (byte)0x08, (byte)0x6b, (byte)0xef,
                 (byte)0x68, (byte)0x30, (byte)0x01, (byte)0xe7,
                 (byte)0x00
             });
@@ -644,19 +644,6 @@ namespace RSABigInt
                 (byte)0x43, (byte)0x1a, (byte)0x86, (byte)0x39, (byte)0xf5, (byte)0x2a,
                 (byte)0x9b, (byte)0xe8, (byte)0x07, (byte)0xda,
                 (byte)0x00
-                /*
-                (byte)0xc5, (byte)0x74, (byte)0x8c, (byte)0xd5, (byte)0x3d, (byte)0xd3,
-                (byte)0x52, (byte)0x40, (byte)0x06, (byte)0x69, (byte)0xbb, (byte)0x82,
-                (byte)0xe2, (byte)0x21, (byte)0x66, (byte)0x63, (byte)0xd8, (byte)0xef,
-                (byte)0xf2, (byte)0xe3, (byte)0x28, (byte)0x3f, (byte)0x1a, (byte)0xd8,
-                (byte)0xf1, (byte)0x07, (byte)0xad, (byte)0x9f, (byte)0xea, (byte)0x8e,
-                (byte)0xb8, (byte)0x39, (byte)0x2a, (byte)0x94, (byte)0x42, (byte)0xda,
-                (byte)0x0c, (byte)0xb9, (byte)0x63, (byte)0xe4, (byte)0xe2, (byte)0x8b,
-                (byte)0x9c, (byte)0x15, (byte)0x08, (byte)0x12, (byte)0x7c, (byte)0xde,
-                (byte)0xc8, (byte)0x6c, (byte)0x30, (byte)0xe9, (byte)0x5f, (byte)0x9e,
-                (byte)0xc1, (byte)0xbe, (byte)0x92, (byte)0x34, (byte)0xf8, (byte)0xaf,
-                (byte)0x7a, (byte)0x23, (byte)0xfd, (byte)0x93,
-                (byte)0x00*/
             });
 
             P3 = new BigInteger(new byte[] {
@@ -689,8 +676,44 @@ namespace RSABigInt
                 (byte)0x0e, (byte)0x4f, (byte)0x8a, (byte)0x9e,
                 (byte)0x00
             });
+
             bIsPrime = MillerRabin(P3, 13);
             WriteLine($"MillerRabin({P3}, 13): {bIsPrime}\n");
+
+            var P4 = new BigInteger(new byte[]
+            {
+                (byte)0x93, (byte)0xfd, (byte)0x23, (byte)0x7a, (byte)0xaf, (byte)0xf8,
+                (byte)0x34, (byte)0x92, (byte)0xbe, (byte)0xc1, (byte)0x9e, (byte)0x5f, 
+                (byte)0xe9, (byte)0x30, (byte)0x6c, (byte)0xc8, (byte)0xde, (byte)0x7c, 
+                (byte)0x12, (byte)0x08, (byte)0x15, (byte)0x9c, (byte)0x8b, (byte)0xe2, 
+                (byte)0xe4, (byte)0x63, (byte)0xb9, (byte)0x0c, (byte)0xda, (byte)0x42, 
+                (byte)0x94, (byte)0x2a, (byte)0x39, (byte)0xb8, (byte)0x8e, (byte)0xea, 
+                (byte)0x9f, (byte)0xad, (byte)0x07, (byte)0xf1, (byte)0xd8, (byte)0x1a, 
+                (byte)0x3f, (byte)0x28, (byte)0xe3, (byte)0xf2, (byte)0xef, (byte)0xd8, 
+                (byte)0x63, (byte)0x66, (byte)0x21, (byte)0xe2, (byte)0x82, (byte)0xbb, 
+                (byte)0x69, (byte)0x06, (byte)0x40, (byte)0x52, (byte)0xd3, (byte)0x3d, 
+                (byte)0xd5, (byte)0x8c, (byte)0x74, (byte)0xc5, 
+                (byte)0x00,
+            });
+
+            P4 = new BigInteger(new byte[]
+            {
+                (byte)0x9f, (byte)0x59, (byte)0x88, (byte)0x44, (byte)0xf6, (byte)0xfa, 
+                (byte)0x6c, (byte)0x04, (byte)0x9e, (byte)0xe7, (byte)0xee, (byte)0x39, 
+                (byte)0xd3, (byte)0x3e, (byte)0x62, (byte)0x84, (byte)0x39, (byte)0xa2, 
+                (byte)0x8a, (byte)0xdb, (byte)0xae, (byte)0xdf, (byte)0x67, (byte)0x71, 
+                (byte)0x22, (byte)0x5c, (byte)0x1c, (byte)0x4d, (byte)0xf8, (byte)0x96, 
+                (byte)0xd2, (byte)0x1b, (byte)0x30, (byte)0x2f, (byte)0xd2, (byte)0x4f, 
+                (byte)0x8c, (byte)0x4d, (byte)0x77, (byte)0x16, (byte)0xbe, (byte)0x77, 
+                (byte)0xd2, (byte)0x12, (byte)0x84, (byte)0xdc, (byte)0x95, (byte)0x2a, 
+                (byte)0x79, (byte)0xfe, (byte)0x6b, (byte)0xf1, (byte)0x7c, (byte)0x44, 
+                (byte)0xb4, (byte)0x4a, (byte)0x93, (byte)0x33, (byte)0x90, (byte)0x8c, 
+                (byte)0xa8, (byte)0xd3, (byte)0x1a, (byte)0xa1,
+                (byte)0x00,
+            });
+
+            bIsPrime = MillerRabin(P4, 13);
+            WriteLine($"MillerRabin({P4}, 13): {bIsPrime}\n");
 
             //StreamWriter file1 = new StreamWriter("output.txt", false);
             //file1.WriteLine(T1.ToString());
@@ -700,12 +723,12 @@ namespace RSABigInt
             BigInteger T3;
             sw.Start();
             {
-                T3 = BigInteger.ModPow(new BigInteger(31), T2, T2);
+                T3 = BigInteger.ModPow(new BigInteger(31), T2 - 1, T2);
             }
             sw.Stop();
 
-                                                                                        // This could take a few hours!
-            WriteLine("ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));                 // ModPow time: 12453 ms
+            if (T3.IsOne)                                                                // This could take a few hours!
+                WriteLine("ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));             // ModPow time: 12453 ms
 
             sw.Restart();
             {
@@ -715,17 +738,13 @@ namespace RSABigInt
             WriteLine("Log10(T3) elapsed time: {0} ms\n", sw.ElapsedMilliseconds);                 // ModPow time: 12453 ms
 
             string strNormalizedIntegerTwo = "2" + new String('0', 10000);
+            //var sqrtTwo = SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
+            //WriteLine("{0}\n", sqrtTwo * sqrtTwo);
 
             WriteLine(SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo)) + "\n");
             WriteLine(Sqrt(BigInteger.Parse(strNormalizedIntegerTwo)) + "\n");
-            
-            //int n = 13017;  //7921;   // 1789;   // 3607;
-            //WriteLine("fact({1}) = {0}\n", Factorial(n).ToString(), n);
-            //WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n).ToString(), n);
-            //BigInteger sqrt2 = SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
-            //WriteLine($"sqrt(2) = {sqrt2}\n");
 
-            int n = 13017;  //7921;   // 1789;   // 3607;
+            int n = 22291;    //13017;  //7921;   // 1789;   // 3607;
             WriteLine("fact({1}) = {0}\n", Factorial(n), n);
             WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n), n);
         }
@@ -854,7 +873,7 @@ namespace RSABigInt
                     if (matrix[i, p] > matrix[p, p])
                     {
 #if DEBUG
-                        WriteLine("Swap rows: {0} and {1}", p, i);
+                        WriteLine("\nSwap rows: {0} and {1}", p, i);
 #endif
                         row_swaps++;
                         for (uint j = 0; j < matrix.GetLength(1); j++)          // length of the 2nd dimension / number of columns
@@ -868,7 +887,7 @@ namespace RSABigInt
                     if (matrix[i, p] == 1)                                  // Add these rows if value in pivot column is 1
                     {
 #if DEBUG
-                        WriteLine("Add row: {0} to row: {1}", p, i);
+                        Write("Add row: {0} to row: {1}\r", p, i);
 #endif
                         row_adds++;
                         for (int j = 0; j < matrix.GetLength(1); j++)
@@ -880,7 +899,7 @@ namespace RSABigInt
             }     // for p - NOT: Parallel.For p
             sw.Stop();
 #if DEBUG
-            string strValue = $"Row adds: {row_adds}\nRow swaps: {row_swaps}\nElapsed time: {FormatTimeSpan(sw.Elapsed)}\n";
+            string strValue = $"\nRow adds: {row_adds}\nRow swaps: {row_swaps}\nElapsed time: {FormatTimeSpan(sw.Elapsed)}\n";
             WriteLine(strValue);
 #endif
         }
@@ -938,14 +957,17 @@ namespace RSABigInt
                                 x *= Qx[j - factor_base.Length].x;
                                 y *= Qx[j - factor_base.Length].Q_of_x;
                             }
-                        y = x - Sqrt(y);
-                        BigInteger P = BigInteger.GreatestCommonDivisor(N1, y);
-                        if (P > 1 && P != N1)
+                        if (!y.IsOne)               // Why is Sqrt(y) being called when y = 1?
                         {
-                            BigInteger Q = N1 / P;
-                            WriteLine("\nFactors: {0}, {1}\n", P.ToString(), Q.ToString());
-                            loopState.Stop();
-                            cancellationSource.Cancel();
+                            y = x - SquareRoot(y);
+                            BigInteger P = BigInteger.GreatestCommonDivisor(N1, y);
+                            if (!P.IsOne && P.CompareTo(N1) != 0)
+                            {
+                                BigInteger Q = N1 / P;
+                                WriteLine("\nFactors: {0}, {1}\n", P.ToString(), Q.ToString());
+                                loopState.Stop();
+                                cancellationSource.Cancel();
+                            }
                         }
                     }
 
@@ -965,7 +987,7 @@ namespace RSABigInt
             sw.Stop();
 #if DEBUG
             WriteLine("Calculate_Factors({0})\nElapsed time: {1}", N1, FormatTimeSpan(sw.Elapsed));
-            WriteLine($"dt1 - dt0 = {dt1.Subtract(dt0).Seconds} s\n");
+            WriteLine($"dt1 - dt0 = {dt1.Subtract(dt0).TotalSeconds:F1} s\n");
 #endif
         }   // CalculateFactors
 
@@ -1347,10 +1369,10 @@ namespace RSABigInt
             //Smooth_Numbers(N);
             // Parallel_For implementation
             Smooth_Numbers2(N);
-
-            //Write("Press Enter: ");
-            //Console.ReadLine();
-
+#if DEBUG
+            Write("Press Enter: ");
+            ReadLine();
+#endif
             Process_Matrix();
             //Dump_Matrix();
             Gauss_Elimination();
@@ -1458,10 +1480,10 @@ namespace RSABigInt
             //clsMBI.TwinPrime_Test();
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne2(23);
-            clsMBI.ModPow_Misc_Stuff();
+            //clsMBI.ModPow_Misc_Stuff();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.RSA_Numbers();
-            //clsMBI.Smooth_Nums_Test(N.ToString());
+            clsMBI.Smooth_Nums_Test(N.ToString());
 
             Write("\nPress Enter: ");
             ReadLine();
