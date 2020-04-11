@@ -827,7 +827,7 @@ namespace RSABigInt
             WriteLine("Time: {0} ms\n", sw.ElapsedMilliseconds);
         }
 
-        void Process_Matrix()
+        private void Process_Matrix()
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -848,7 +848,7 @@ namespace RSABigInt
 #endif
         }
 
-        void Gauss_Elimination()
+        private void Gauss_Elimination()
         {
             uint row_adds = 0, row_swaps = 0;
             Stopwatch sw = new Stopwatch();
@@ -904,7 +904,7 @@ namespace RSABigInt
 #endif
         }
 
-        void Dump_Matrix()
+        private void Dump_Matrix()
         {
             for (uint i = 0; i < matrix.GetLength(0); i++)                  // number of rows
             {
