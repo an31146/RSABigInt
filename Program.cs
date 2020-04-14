@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 using static System.Console;
 
-#pragma warning disable IDE0055,IDE1006,IDE1005,IDE1017,CS0219,CS0168
+#pragma warning disable IDE0011,IDE0055,IDE1006,IDE1005,IDE1017,CS0219,CS0168
 /*
  * IDE1006 Suppress Naming Rule Violation IDE1006
  * IDE1005 Delegate invocation can be simplified
@@ -298,7 +298,7 @@ namespace RSABigInt
             return Fn_plus_one;
         }
 
-        uint[] GetPrimeFactors(BigInteger N)
+        private uint[] GetPrimeFactors(BigInteger N)
         {
             uint [] factor_expos = new uint[factor_base.Length];
 
@@ -315,20 +315,22 @@ namespace RSABigInt
                 return null;
         }
 
-        void Factor_Base(BigInteger N)
+        private void Factor_Base(BigInteger N)
         {
             int j = 0;
             for (int i = 0; i < primes.Length; i++)
                 if (Legendre(N, primes[i]) == 1)
                 {
-                    //Write(factor_base[j] + "\t  ");
                     factor_base[j++] = primes[i];
+#if DEBUG
+                    Write("{0,8}", factor_base[j-1]);
+#endif
                 }
             Array.Resize(ref factor_base, j);
-            WriteLine($"Factor base: {j} primes.\n");
+            WriteLine($"\nFactor base: {j} primes.\n");
         }
 
-        int Legendre(BigInteger n, uint p)
+        public int Legendre(BigInteger n, uint p)
             {
                 BigInteger p1, l;
     
@@ -344,7 +346,25 @@ namespace RSABigInt
                     return -1;
             }
 
-        bool MillerRabin(BigInteger n, int k)
+        public int Legendre(uint n, uint p)
+        {
+            ulong p1, l = 1;
+
+            // assumes p is an odd prime
+            p1 = (p - 1) / 2;
+            for (ulong i = 0; i < p1; i++) { 
+                l *= n; l %= p;
+            }
+
+            if (l == 1)
+                return 1;
+            if (l == 0)
+                return 0;
+            else
+                return -1;
+        }
+
+        public bool MillerRabin(BigInteger n, int k)
         {
             int[] base_primes = {
                   2,   3,   5,   7,  11,  13,  17,  19,
@@ -749,13 +769,29 @@ namespace RSABigInt
             WriteLine("fibonacci({1}) = {0}\n", Fibonacci(n), n);
         }
 
-        BigInteger g (BigInteger x, BigInteger n, int a) 
+        public void Print_Legendre_Table(int a, int n)
+        {
+            Write("  a ");
+            for (int i = 1; i <= a; i++)
+                Write($"{i,4}");
+            WriteLine("p   " + new String('-', 116));
+            
+            for (int j = 0; j < n; j++)
+            {
+                Write($"{primes[j],3} ");
+                for (uint i = 1; i <= a; i++)
+                    Write("{0,4}", Legendre(i, primes[j]));
+            }
+            WriteLine("\n");
+        }
+
+        private BigInteger g (BigInteger x, BigInteger n, int a) 
         {
             BigInteger x_ = x * x + a;
 	        return BigInteger.Remainder(x_, n);
         }
 
-        Int64 gx (Int64 x, Int64 n, Int64 a)
+        private Int64 gx (Int64 x, Int64 n, Int64 a)
         {
             return (x * x + a) % n;
         }
@@ -1481,6 +1517,7 @@ namespace RSABigInt
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne2(23);
             //clsMBI.ModPow_Misc_Stuff();
+            //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.RSA_Numbers();
             clsMBI.Smooth_Nums_Test(N.ToString());
