@@ -188,12 +188,12 @@ namespace RSABigInt
         public BigInteger TwinPrime(int size)
         {
             BigInteger twin = RandPrime(size: size);
-            bool found = false;
-            do
+            bool found = MillerRabin(twin, 2) && MillerRabin(twin + 2, 2);
+            while (!found)
             {
                 twin += 2;
                 found = MillerRabin(twin, 2) && MillerRabin(twin + 2, 2);
-            } while (!found);
+            }
             
             return twin;
         }
@@ -383,7 +383,7 @@ namespace RSABigInt
                 return -1;
         }
 
-        public bool MillerRabin(BigInteger n, int k)
+        public bool MillerRabin(BigInteger n, int k = confidence)
         {
             int[] base_primes = {
                   2,   3,   5,   7,  11,  13,  17,  19,
@@ -728,8 +728,8 @@ namespace RSABigInt
         {
 
             var P1 = BigInteger.Parse("8949969815784082905285113653565030657117978813653332368993611264200624281180341263589905784897611545421273844719391941113720317582959695290277880367278839");
-            bool bIsPrime = MillerRabin(P1, confidence);
-            WriteLine($"MillerRabin({P1}, {confidence}): {bIsPrime}\nBitCount: {BitCount(P1)}\n");
+            bool bIsPrime = MillerRabin(P1);
+            WriteLine($"MillerRabin({P1}): {bIsPrime}\nBitCount: {BitCount(P1)}\n");
 
             var P2 = new BigInteger(new byte[] {
                 0x95, 0xe3, 0x5d, 0x14, 0xe5, 0x30, 0x1e, 0xbd,  0x76, 0x92, 0xa1, 0x26, 0xe7, 0xfa, 0xe2, 0xef,
@@ -739,8 +739,8 @@ namespace RSABigInt
                 0x00
             });
 
-            bIsPrime = MillerRabin(P2, confidence);
-            WriteLine($"MillerRabin({P2}, {confidence}): {bIsPrime}\nBitCount: {BitCount(P2)}\n");
+            bIsPrime = MillerRabin(P2);
+            WriteLine($"MillerRabin({P2}): {bIsPrime}\nBitCount: {BitCount(P2)}\n");
 
             var P3 = new BigInteger(new byte[] {
                 0x81, 0x3f, 0x9c, 0x81, 0x31, 0x78, 0x58, 0xa1,  0xcd, 0xbd, 0xdd, 0xdb, 0xc9, 0xa7, 0xb1, 0xcf,
@@ -768,8 +768,8 @@ namespace RSABigInt
                 0x00
             });
             */
-            bIsPrime = MillerRabin(P3, confidence);
-            WriteLine($"MillerRabin({P3}, {confidence}): {bIsPrime}\nBitCount: {BitCount(P3)}\n");
+            bIsPrime = MillerRabin(P3);
+            WriteLine($"MillerRabin({P3}): {bIsPrime}\nBitCount: {BitCount(P3)}\n");
 
             var P4a = new BigInteger(PseudoPrime4a());
 
@@ -779,13 +779,13 @@ namespace RSABigInt
 
             var P4d = new BigInteger(PseudoPrime4d());
 
-            bIsPrime = MillerRabin(P4a, confidence);
-            WriteLine($"MillerRabin({P4a}, {confidence}): {bIsPrime}\nBitCount: {BitCount(P4a)}\n");
+            bIsPrime = MillerRabin(P4a);
+            WriteLine($"MillerRabin({P4a}): {bIsPrime}\nBitCount: {BitCount(P4a)}\n");
 
             var P5 = new BigInteger(PseudoPrime5c());
 
-            bIsPrime = MillerRabin(P5, confidence);
-            WriteLine($"MillerRabin({P5}, {confidence}): {bIsPrime}\nBitCount: {BitCount(P5)}\n");
+            bIsPrime = MillerRabin(P5);
+            WriteLine($"MillerRabin({P5}): {bIsPrime}\nBitCount: {BitCount(P5)}\n");
 
             var H1 = BigInteger.Parse("4c9a210dd08a0452cc8b31cab00f80a7f870553859f43739920453ccfa5e0e37acf0a0e60c728799" +
                                        "a77fb60d325adf3bdcbeaa97670c5d29e24b917e49c3eaf0d7ccdb4afb479ced74a4c07a0028a860" +
@@ -797,8 +797,8 @@ namespace RSABigInt
                                        "4bc3495b0a6867824a5201d68a47b7482e53e0a87e1cde253b67ccba18e4aa7810bf2e42f677d71a" +
                                        "e2ae885131a0c43b777220158a38382b484be7c04fac0550a805f735acc372d3db09c495a5bbe9cc" +
                                        "ad31553e111bc66d2ae2d711728f8782ca7fa2c65e5b51e819a0b0780ddf587ef0963d4ec80a4bf9a571dd", NumberStyles.HexNumber);
-            bIsPrime = MillerRabin(H1, confidence);
-            WriteLine($"MillerRabin({H1:x}, {confidence}): {bIsPrime}\nBitCount: {BitCount(H1)}\n");
+            bIsPrime = MillerRabin(H1);
+            WriteLine($"MillerRabin({H1:x}): {bIsPrime}\nBitCount: {BitCount(H1)}\n");
 
             var H2 = BigInteger.Parse(
                 "16ebe06bfcb56920ca13179c1f17bf2b791f590741bb963e81b65c3b893cfed4010ff65dbfb27aa6146cd1fa248ad4af853ac583db9ae52194eaa7" +
@@ -815,8 +815,8 @@ namespace RSABigInt
                 "5a8c3c43d580e452d67f545b4ab737510f5f138b982064e66125c2028224c8844ec505fe8641d4f85e201d709e035e84118320baf9ad7071798902" +
                 "f11c14d76bb3e2b0f3ee795601e417ae14f49ea0cf9e5b086f0ff6b33699e316630d75ec9e7f1b429f84749e9424992ff6432367d27b4b2daffdb4" +
                 "60576f6915ae1eea17c1b18b892a9c78abed607b67d4f4edc2c79e274c5d275a3cb84144bea7fb", NumberStyles.HexNumber);
-            bIsPrime = MillerRabin(H2, confidence);
-            WriteLine($"MillerRabin({H2:x}, {confidence}): {bIsPrime}\nBitCount: {BitCount(H2)}\n");
+            bIsPrime = MillerRabin(H2);
+            WriteLine($"MillerRabin({H2:x}): {bIsPrime}\nBitCount: {BitCount(H2)}\n");
 
         }
 
@@ -840,7 +840,7 @@ namespace RSABigInt
                     BigInteger bigInt_p = new BigInteger(p);
                     x = BigInteger.Pow(bigInt_p, count);
 
-                    Console.WriteLine("\t{0}^{1} = {2}", p, count, x);
+                    //Console.WriteLine("\t{0}^{1} = {2}", p, count, x);
 
                     if (count == 0 && x != new BigInteger(1))
                         throw new ArithmeticException("x.Pow(0) was not equal to 1.");
@@ -859,7 +859,39 @@ namespace RSABigInt
 
             }
         }
-        
+
+        public void SqrtTest2(int rounds)
+        {
+            BigInteger BigTwo = new BigInteger(256);
+
+            for (int i = 0; i < 500; i++)
+                BigTwo *= 100;
+
+            Console.WriteLine(Sqrt(BigTwo));
+
+            for (int count = 0; count < rounds; count++)
+            {
+                BigInteger y = new BigInteger(count + 1);
+                for (int i = 0; i < 250; i++)
+                    y *= 10000;
+
+                BigInteger x = Sqrt(y);
+                BigInteger z = (x + 1) * (x + 1);
+
+                Console.Write("Round: {0}", count);
+
+                // check that x is the largest integer such that x*x <= z
+                if (z <= y)
+                {
+                    Console.WriteLine("\nError at round " + count);
+                    Console.WriteLine(x + "\n");
+                    return;
+                }
+                // Console.WriteLine("\nz = {0}\nx = {1}", z, x);
+                Console.WriteLine(" <PASSED>.");
+            }
+        }
+
         private byte[] PseudoPrime4a()
         {
             return new byte[]
@@ -1795,17 +1827,18 @@ namespace RSABigInt
 
             WriteLine($"{p} x {q} = {N}\n");
 
-            //clsMBI.TwinPrime_Test();
+            //clsMBI.TwinPrime_Test();                              // outputs to twin_primes.txt
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne();
             //clsMBI.Mersenne2(23);
-            clsMBI.ModPow_Misc_Stuff();
-            //clsMBI.PowTest(300);
-            //clsMBI.Print_Legendre_Table(29, 31);
+            //clsMBI.ModPow_Misc_Stuff();
             //clsMBI.Pollard_Rho_Test(N.ToString());
+            //clsMBI.PowTest(1000);
+            //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
-            //clsMBI.Sophie_Germain();
+            clsMBI.Sophie_Germain();
             //clsMBI.Smooth_Nums_Test(N.ToString());
+            //clsMBI.SqrtTest2(1000);
 
             Write("\nPress Enter: ");
             ReadLine();
