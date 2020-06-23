@@ -46,38 +46,31 @@ namespace segmented_sieve_v2
                 if (is_prime[i])
                 {
                     primes.Add(i);
-                    //Write($"{i,5}");
                 }
             }
-            //WriteLine();
 
-            //List<int> extra_primes = new List<int>();
+            // Note to self - parallelizing this doesn't help, 39s vs. 13s for single thread.
             ParallelOptions options = new ParallelOptions();
-            options.MaxDegreeOfParallelism = 4;
-            //int extraPrimes = 0;
+            options.MaxDegreeOfParallelism = 2;
             Parallel.ForEach(primes, options, (int l) =>
             {
-                //Write($"{l,5}");
-
                 lock (is_prime)
                 {
                     for (int i = l * l; i <= limit; i += l)
                         is_prime[i] = false;
                 }
             });
-            //WriteLine();
 
-            Parallel.For(sqrt, limit, (int i) =>
-            //for (int i = sqrt; i < limit; i++)
+            Parallel.For(sqrt, limit, options, (int i) =>
             {
                 if (is_prime[i])
                     lock (primes)
                     {
                         primes.Add(i);
-                        //Write($"{i,10}");
                     }
             });
             WriteLine("\n\n{0} primes found.", primes.Count);
+
             //cout << "twin prime constant: " << twin_prime_const << endl;
         }
         static void Main(string[] args)
