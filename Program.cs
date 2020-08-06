@@ -241,16 +241,15 @@ namespace RSABigInt
             WriteLine("iterations: {0}", i);
             WriteLine("\nSquareRoot({0})\nElapsed time: {1}\n", n, FormatTimeSpan(sw.Elapsed));
 #endif
+
             return q;
         }
 
         // Why is this function 3 times(!) quicker than the one above?  Number of operations used.
         // 10-Apr-20 Actually - difference is negligible, 1490s vs. 1497s
-        // 23-Apr-20 Because the initial guess is WRONG!
         public BigInteger Sqrt(BigInteger x)
         {
-            int a_HalfLogXBase2 = (int)BigInteger.Log(x, 2) >> 1;
-            BigInteger div = x >> a_HalfLogXBase2;
+            BigInteger div = new BigInteger(2);
             BigInteger div2 = div, y;
             Stopwatch sw = new Stopwatch();
 
@@ -315,7 +314,7 @@ namespace RSABigInt
 
         public int BitCount(BigInteger n)
         {
-            return (int)Math.Round(BigInteger.Log(n, 2) + 0.5d, 0);
+            return (int)Math.Round(BigInteger.Log(n) / Math.Log(2.0d) + 0.5d, 0);
         }
 
         private uint[] GetPrimeFactors(BigInteger N)
@@ -588,6 +587,7 @@ namespace RSABigInt
             for (int i = 0, numberOfMprimes = 1; i < primes.Length; i++)
             {
                 isMprime = LucasLehmer((int)primes[i]);
+
                 if (isMprime)
                 {
                     sw.Stop();
@@ -597,16 +597,13 @@ namespace RSABigInt
                     if (numberOfMprimes < 9)
                         WriteLine("M[{0}] = {1}", primes[i], strPowerOf2Sub1);
                     else
-                    {
-                        WriteLine("M[{0}] = {1}...{2}", primes[i], strPowerOf2Sub1.Substring(0, 12),
+                        WriteLine("M[{0}] = {1}...{2}", primes[i], strPowerOf2Sub1.Substring(0, 12), 
                                                                    strPowerOf2Sub1.Substring(strPowerOf2Sub1.Length - 12, 12));
-                        if (sw.Elapsed.TotalSeconds >= 1)
-                            WriteLine("elapsed time: {0:F1} s\n", sw.Elapsed.TotalSeconds);
-                        else
-                            WriteLine("elapsed time: {0:N0} ms\n", sw.Elapsed.Milliseconds);
-                        sw.Restart();
-                    }
+
                     numberOfMprimes++;
+
+                    WriteLine("elapsed time: {0} ms\n", sw.ElapsedMilliseconds);
+                    sw.Restart();
                 }
                 if (n < numberOfMprimes)
                     break;
@@ -654,17 +651,14 @@ namespace RSABigInt
         }
 
         public void Sophie_Germain()
-
         {
-            /*
-            BigInteger p1 = RandPrime(43);
+            BigInteger p1 = RandPrime(71);
 
             while (!MillerRabin(2 * p1 + 1, 17))
-                p1 = RandPrime(43);
+                p1 += 2;
 
             WriteLine($"{p1}");
-            ReadLine();
-            */
+            /*
             for (int i = 0; i < primes.Length/2; i++)
             {
                 foreach (uint q in primes)
@@ -674,6 +668,7 @@ namespace RSABigInt
                         break;
                     }
             }
+            */
             WriteLine();
         }
 
@@ -1444,6 +1439,19 @@ namespace RSABigInt
                         Write(k.ToString() + " smooth numbers\r");
                     }
                     i++;
+                    /*
+                    sm = N1 - j * j;
+                    expo1 = GetPrimeFactors(sm);
+                    if (expo1 != null)
+                    {
+                        Qx[k].Q_of_x = sm;
+                        Qx[k].x = j;
+                        Qx[k].exponents = expo1;
+                        Interlocked.Increment(ref k);
+                        Write(k.ToString() + " smooth numbers\r");
+                    }
+                    j--;
+                     */
                 }
             });
 
@@ -1821,13 +1829,13 @@ namespace RSABigInt
             //clsMBI.TwinPrime_Test();                              // outputs to twin_primes.txt
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne();
-            clsMBI.Mersenne2(21);
-            //clsMBI.ModPow_Misc_Stuff2();
+            //clsMBI.Mersenne2(23);
+            //clsMBI.ModPow_Misc_Stuff();
             //clsMBI.Pollard_Rho_Test(N.ToString());
             //clsMBI.PowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
-            //clsMBI.Sophie_Germain();
+            clsMBI.Sophie_Germain();
             //clsMBI.Smooth_Nums_Test(N.ToString());
             //clsMBI.SqrtTest2(1000);
 
