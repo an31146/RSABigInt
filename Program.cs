@@ -220,7 +220,8 @@ namespace RSABigInt
 
         public BigInteger SquareRoot(BigInteger n)
         {
-            BigInteger d = n >> 1, q, _d;
+            int a_HalfLogXBase2 = (int)BigInteger.Log(n, 2) >> 1;
+            BigInteger d = n >> a_HalfLogXBase2, q, _d;
             Stopwatch sw = new Stopwatch();
 
             int i = 0;
@@ -249,7 +250,8 @@ namespace RSABigInt
         // 10-Apr-20 Actually - difference is negligible, 1490s vs. 1497s
         public BigInteger Sqrt(BigInteger x)
         {
-            BigInteger div = new BigInteger(2);
+            int a_HalfLogXBase2 = (int)BigInteger.Log(x, 2) >> 1;
+            BigInteger div = x >> a_HalfLogXBase2;
             BigInteger div2 = div, y;
             Stopwatch sw = new Stopwatch();
 
@@ -652,12 +654,20 @@ namespace RSABigInt
 
         public void Sophie_Germain()
         {
-            BigInteger p1 = RandPrime(71);
+            BigInteger p1 = RandPrime(23);
+            //p1 = BigInteger.Parse("2458660187856824879520595114870378250951431099288225378935017566800781119530503250246319150383200577" +
+            //                      "2239534362312959895639176940639315849312418626787213101575564785527284385424689741076546240829379542" + 
+            //                      "7379986300689878537402008701959350545403526654541127010835528445689532162313465868838686033876428021" +
+            //                      "28584806281635941597546342162000054644591515119");
 
-            while (!MillerRabin(2 * p1 + 1, 17))
+            for (int i = 0; i < 2000; i++)
+            {
+                while ( !(MillerRabin(p1, 5) && MillerRabin(2 * p1 + 1, 5)) )
+                    p1 += 2;
+
+                WriteLine($"{p1}");
                 p1 += 2;
-
-            WriteLine($"{p1}");
+            }
             /*
             for (int i = 0; i < primes.Length/2; i++)
             {
@@ -828,7 +838,7 @@ namespace RSABigInt
             BigInteger x;
             for (int count = 3; count < rounds; count++)
             {
-                Console.Write("Round: {0}", count);
+                Write("Round: {0}", count);
 
                 foreach (int p in primes)
                 // foreach(int p in new int[] {2, 3, 5, 7, 11, 13, 17} )
@@ -853,7 +863,7 @@ namespace RSABigInt
                         throw new ArithmeticException("gcd(x, 2017) has common denominator > 1.");
 
                 }
-                Console.WriteLine(" <PASSED>.");
+                WriteLine(" <PASSED>.");
                 // Console.ReadLine();
 
             }
@@ -864,30 +874,30 @@ namespace RSABigInt
             BigInteger BigTwo = new BigInteger(256);
 
             for (int i = 0; i < 500; i++)
-                BigTwo *= 100;
+                BigTwo *= 1000000;
 
-            Console.WriteLine(Sqrt(BigTwo));
+            WriteLine(Sqrt(BigTwo));
 
             for (int count = 0; count < rounds; count++)
             {
                 BigInteger y = new BigInteger(count + 1);
                 for (int i = 0; i < 250; i++)
-                    y *= 10000;
+                    y *= 1000000;
 
                 BigInteger x = Sqrt(y);
                 BigInteger z = (x + 1) * (x + 1);
 
-                Console.Write("Round: {0}", count);
+                Write("Round: {0}", count);
 
                 // check that x is the largest integer such that x*x <= z
                 if (z <= y)
                 {
-                    Console.WriteLine("\nError at round " + count);
-                    Console.WriteLine(x + "\n");
+                    WriteLine("\nError at round " + count);
+                    WriteLine(x + "\n");
                     return;
                 }
                 // Console.WriteLine("\nz = {0}\nx = {1}", z, x);
-                Console.WriteLine(" <PASSED>.");
+                WriteLine(" <PASSED>.");
             }
         }
 
@@ -1835,8 +1845,8 @@ namespace RSABigInt
             //clsMBI.PowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
-            clsMBI.Sophie_Germain();
-            //clsMBI.Smooth_Nums_Test(N.ToString());
+            //clsMBI.Sophie_Germain();
+            clsMBI.Smooth_Nums_Test(N.ToString());
             //clsMBI.SqrtTest2(1000);
 
             Write("\nPress Enter: ");
