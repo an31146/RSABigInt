@@ -27,8 +27,8 @@ namespace RSABigInt
 	public class MyBigInteger_Class
 	{
 		//private const uint ARRAY_SIZE = 0x166e0e21;
-		private const uint ARRAY_SIZE = 0x8000000;
-		private const uint LIMIT = 100000;
+		private const uint ARRAY_SIZE = 0x10000000;
+		private const uint LIMIT = 1000000;
 		private const int confidence = 15;
 
 		private Random _randObj;
@@ -37,6 +37,7 @@ namespace RSABigInt
 											 // TO-DO: Make this a System.Collections.Generic.BitArray
 		private uint[,] matrix;              // 2-dimensional matrix comprising of smooth num exponents mod 2
 		Dictionary<BigInteger, Tuple<uint, List<BigInteger>>> partial_expos;
+		private BigInteger fb_primorial;
 
 		private struct smooth_num
 		{
@@ -67,6 +68,7 @@ namespace RSABigInt
 			primes = new uint[ARRAY_SIZE];                  // 131072 elements --- 0x18000000 = 1.5GB array
 			factor_base = new uint[ARRAY_SIZE];
 			prime_sieve(LIMIT);
+			fb_primorial = BigInteger.One;
 		}
 
 		public void prime_sieve(uint n)
@@ -337,7 +339,7 @@ namespace RSABigInt
 		private uint[] GetPrimeFactors(BigInteger N)
 		{
 			uint [] factor_expos = new uint[factor_base.Length];
-			for (int i = 0; i < factor_base.Length && !N.IsOne; i++)
+			for (int i = 0; i < factor_base.Length && N > 1; i++)
 			{
 				uint j = 0, pr = factor_base[i];
 				for (; (N % pr).IsZero; j++)    // divisble by prime in factor_base[]
@@ -438,6 +440,7 @@ namespace RSABigInt
 				if (Legendre(N, pr) == 1)                // add primes[i] to array if it is a quadratic reciprocal of N
 				{
 					factor_base[j++] = pr;
+					fb_primorial *= pr;
 #if DEBUG
 					Write("{0,7},", factor_base[j-1]);
 #endif
@@ -1542,33 +1545,26 @@ namespace RSABigInt
 
 		public void Smooth_Numbers(BigInteger N1)
 		{
-			// Collect smooth numbers
-			Factor_Base(N1);
-			BigInteger FB_Primorial = BigInteger.One;
-			foreach (uint pr in factor_base)
-				FB_Primorial *= pr;
-
 			BigInteger sqrt = SquareRoot(N1);
 			Debug.Assert(sqrt * sqrt < N1);
 
-			int N_smooths = (int)(factor_base.Length * 1.02d);
-			if ((N_smooths & 1) == 1)
-				N_smooths++;                // make it even
-			List<smooth_num>Qx_local = new List<smooth_num>(N_smooths);
+			int N_smooths_needed = (int)(factor_base.Length * 1.02d);
+			if ((N_smooths_needed & 1) == 1)
+				N_smooths_needed++;                // make it even
+			List<smooth_num>Qx_local = new List<smooth_num>(N_smooths_needed);
 			//Qx_local.Initialize();
 			int tests_loop1 = 0, tests_loop2 = 0;
 
-			int smooth_looper(BigInteger SemiPrime, BigInteger root, int incr, int smooths_needed,
-							  BigInteger primorial, Func<BigInteger, BigInteger, BigInteger> smooth_func)
+			int smooth_looper(BigInteger root, int incr, Func<BigInteger, BigInteger, BigInteger> smooth_func)
 			{
 				int count = 0;
 				smooth_num sNum = new smooth_num();
-				while (Qx_local.Count < smooths_needed)
+				while (Qx_local.Count < N_smooths_needed)
 				{
-					sNum.Q_of_x = smooth_func(root, SemiPrime);
+					sNum.Q_of_x = smooth_func(root, N1);
 					Debug.Assert(sNum.Q_of_x > 0);
 
-					if (IsSmooth(sNum.Q_of_x, primorial))         // too expensive to test
+					if (IsSmooth(sNum.Q_of_x, fb_primorial))         // too expensive to test
 																  //if (!BigInteger.GreatestCommonDivisor(sm, primorial).IsOne)
 					{
 						sNum.exponents = GetPrimeFactors(sNum.Q_of_x);
@@ -1590,16 +1586,29 @@ namespace RSABigInt
 			smooth.Add(Task.Run(() =>
 			{
 				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (a * a - b);
-				tests_loop1 = smooth_looper(N1, sqrt + 1, 1, N_smooths, FB_Primorial, func);
+				tests_loop1 = smooth_looper(sqrt + 1, 1, func);
 			}));
 
 			smooth.Add(Task.Run(() =>
 			{
 				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (b - a * a);
-				tests_loop2 = smooth_looper(N1, sqrt - 1, -1, N_smooths, FB_Primorial, func);
+				tests_loop2 = smooth_looper(sqrt - 1, -1, func);
+			}));
+
+			smooth.Add(Task.Run(() =>
+			{
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (b - a * a);
+				tests_loop1 = smooth_looper(sqrt / 2 + 1, 1, func);
+			}));
+
+			smooth.Add(Task.Run(() =>
+			{
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (b - a * a);
+				tests_loop2 = smooth_looper(sqrt / 2 - 1, -1, func);
 			}));
 
 			Task.WaitAll(smooth.ToArray());
+			Qx = Qx_local.ToArray();
 
 			sw.Stop();
 			string strElapsed;
@@ -1608,11 +1617,9 @@ namespace RSABigInt
 			else
 				strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
 
-			Qx = Qx_local.ToArray();
-
 			WriteLine("\nCollected {0} smooth numbers.\nElapsed time: {1}\n", Qx.Length , strElapsed);
 			WriteLine("distances from sqrt: {0}\t{1}", sqrt - tests_loop1, sqrt - tests_loop2);
-			WriteLine("{0:P8} of numbers found were smooth.", (double)N_smooths / (tests_loop1 + tests_loop2));
+			WriteLine("{0:P8} of numbers found were smooth.", (double)N_smooths_needed / (tests_loop1 + tests_loop2));
 			WriteLine("{0:F1} numbers/sec", Qx.Length / sw.Elapsed.TotalSeconds);
 		}
 
@@ -1620,12 +1627,6 @@ namespace RSABigInt
 		{
 			BigInteger sqrt_N1 = Sqrt(N1);
 			Debug.Assert(sqrt_N1 * sqrt_N1 < N1);
-			// prime number factors
-			Factor_Base(N1);
-			BigInteger FB_Primorial = BigInteger.One;
-			foreach (uint pr in factor_base)
-				if (pr > 10000)
-					FB_Primorial *= pr;
 
 			BigInteger I = sqrt_N1 + 1;
 			BigInteger J = sqrt_N1 - 1;
@@ -1635,82 +1636,82 @@ namespace RSABigInt
 				N_smooths++;                    // make it even
 			Qx = new smooth_num[N_smooths];     // class global scoped variable
 			Qx.Initialize();
+            char[] spinners = new char[] { '|', '/', '-', '\\' };
 
-			//smooth_num[] Q1x = new smooth_num[N_smooths * N_smooths * 8];
-			//Q1x.Initialize();
-			int k = 0;
-			char[] spinners = new char[] { '|', '/', '-', '\\' };
+            // Collect smooth numbers - must be a better way than by trial division!
+            //  https://en.wikipedia.org/wiki/Shanks%E2%80%93Tonelli_algorithm
 
-			// Collect smooth numbers - must be a better way than by trial division!
-			//  https://en.wikipedia.org/wiki/Shanks%E2%80%93Tonelli_algorithm
-
-			Stopwatch sw = new Stopwatch();
+            Stopwatch sw = new Stopwatch();
 			sw.Start();
-			while (k < N_smooths)
-			{
-				CancellationTokenSource cancellationSource = new CancellationTokenSource();
-				ParallelOptions options = new ParallelOptions()
-				{
-					CancellationToken = cancellationSource.Token,
-					MaxDegreeOfParallelism = 8
-				};
-				//uint n = 0;
-				//while (n < N_smooths * N_smooths)
 
-				List<smooth_num> Q1x = new List<smooth_num>(N_smooths);
-				Parallel.For(0, N_smooths, options, (n) =>
-				{
-					smooth_num sn = new smooth_num();
+            //smooth_num[] Q1x = new smooth_num[N_smooths * N_smooths * 8];
+            //Q1x.Initialize();
+            int k = 0;
+            while (k < N_smooths)
+            {
+                CancellationTokenSource cancellationSource = new CancellationTokenSource();
+                ParallelOptions options = new ParallelOptions()
+                {
+                    CancellationToken = cancellationSource.Token,
+                    MaxDegreeOfParallelism = 8
+                };
+                //uint n = 0;
+                //while (n < N_smooths * N_smooths)
+
+                List<smooth_num> Q1x = new List<smooth_num>(20000);
+                Parallel.For(0, 10000, options, (n) =>
+                {
+                    smooth_num sn = new smooth_num();
                     {
-						sn.x = J - n;
-						sn.Q_of_x = N1 - sn.x * sn.x;
-						Debug.Assert(sn.Q_of_x > 0);
-						if (!BigInteger.GreatestCommonDivisor(sn.Q_of_x, FB_Primorial).IsOne)
-							Q1x.Add(sn);
+                        sn.x = J - n;
+                        sn.Q_of_x = N1 - sn.x * sn.x;
+                        Debug.Assert(sn.Q_of_x > 0);
+                        if (!BigInteger.GreatestCommonDivisor(sn.Q_of_x, fb_primorial).IsOne)
+                            Q1x.Add(sn);
 
-						sn.x = I + n;
-						sn.Q_of_x = sn.x * sn.x - N1;
-						Debug.Assert(sn.Q_of_x > 0);
-						if (!BigInteger.GreatestCommonDivisor(sn.Q_of_x, FB_Primorial).IsOne)
-							Q1x.Add(sn);
-					}
-				});
-				J -= N_smooths;
-				I += N_smooths;
+                        sn.x = I + n;
+                        sn.Q_of_x = sn.x * sn.x - N1;
+                        Debug.Assert(sn.Q_of_x > 0);
+                        if (!BigInteger.GreatestCommonDivisor(sn.Q_of_x, fb_primorial).IsOne)
+                            Q1x.Add(sn);
+                    }
+                });
+                J -= 10000;
+                I += 10000;
 
 				/*
 				Q1x.Sort(new sort_smooth_num_Helper());
 				foreach (var q1 in Q1x)
 					WriteLine(q1.Q_of_x);
 				*/
+				//foreach (var QSn in Q1x)
 				Parallel.ForEach(Q1x, options, (QSn, loopState) =>
 				{
-					Debug.Assert(!BigInteger.GreatestCommonDivisor(QSn.Q_of_x, FB_Primorial).IsOne);
+					//Debug.Assert(!BigInteger.GreatestCommonDivisor(QSn.Q_of_x, fb_primorial).IsOne);
+
+					uint[] expos = GetPrimeFactors(QSn.Q_of_x);
+					if (expos != null)
 					{
-						uint[] expos = GetPrimeFactors(QSn.Q_of_x);
-						if (expos != null)
+						lock (Qx)
+						try
 						{
-							lock (Qx)
-							try
-							{
-								Qx[k].Q_of_x = QSn.Q_of_x;			// save the smooth number 
-								Qx[k].x = QSn.x;					// save the square root
-								Qx[k].exponents = expos;			// save the prime exponents
-								Write("{0}\r", spinners[k % 4]);
-								k++;
-							}
-							catch (IndexOutOfRangeException ex)
-							{
-								WriteLine("Caught exception: {0}", ex.Message);
-								loopState.Stop();
-							}
+							Qx[k].Q_of_x = QSn.Q_of_x;          // save the smooth number 
+							Qx[k].x = QSn.x;                    // save the square root
+							Qx[k].exponents = expos;            // save the prime exponents
+							Write("{0}\r", spinners[k % 4]);
+							k++;
 						}
+						catch (IndexOutOfRangeException ex)
+						{
+							WriteLine("Caught exception: {0}", ex.Message);
+                            loopState.Stop();
+                        }
 					}
 				});
 
-				//Write($"Collected {k} smooth numbers in {sw.Elapsed.TotalSeconds:F1} secs\r");
-			}   // while (k < N_smooths) 
-			sw.Stop();
+                //Write($"Collected {k} smooth numbers in {sw.Elapsed.TotalSeconds:F1} secs\r");
+            }   // while (k < N_smooths) 
+            sw.Stop();
 #if DEBUG
 			WriteLine("Collected {0} smooth numbers in {1}", k, FormatTimeSpan(sw.Elapsed));
 			WriteLine("{0:P8} of numbers found were smooth.", k / (double)(I - J));
@@ -1720,13 +1721,6 @@ namespace RSABigInt
 
 		public void Smooth_Numbers3(BigInteger N1)
 		{
-			// prime number factors
-			Factor_Base(N1);
-			BigInteger FB_Primorial = BigInteger.One;
-			foreach (uint pr in factor_base)
-				//if (pr > 1000)
-					FB_Primorial *= pr;
-
 			int N_smooths = (int)(factor_base.Length * 1.02d);
 			if ((N_smooths & 1) == 1)
 				N_smooths++;                    // make it even
@@ -1766,7 +1760,7 @@ namespace RSABigInt
 						sn.Q_of_x = N1 - sn.x * sn.x;
 						sn.save_Qx = sn.Q_of_x;     // this is destroyed when factoring
 													//
-						if (!BigInteger.GreatestCommonDivisor(sn.Q_of_x, FB_Primorial).IsOne)
+						if (!BigInteger.GreatestCommonDivisor(sn.Q_of_x, fb_primorial).IsOne)
 						{
 							Q1x.Add(sn);
 						}
@@ -1776,7 +1770,7 @@ namespace RSABigInt
 						sn.Q_of_x = sn.x * sn.x - N1;
 						sn.save_Qx = sn.Q_of_x;     // this is destroyed when factoring
 													//
-						if (!BigInteger.GreatestCommonDivisor(sn.Q_of_x, FB_Primorial).IsOne)
+						if (!BigInteger.GreatestCommonDivisor(sn.Q_of_x, fb_primorial).IsOne)
 						{
 							Q1x.Add(sn);
 						}
@@ -1820,39 +1814,67 @@ namespace RSABigInt
 
 		public void Smooth_Numbers4(BigInteger N)
 		{
-			Factor_Base(N);
-
 			BigInteger sqrt = Sqrt(N);
 			Debug.Assert(sqrt * sqrt < N);
 
-			BigInteger FB_Primorial = BigInteger.One;
-			foreach (uint pr in factor_base)
-				FB_Primorial *= pr;
-
-			uint num_smooths = (uint)(factor_base.Length * 1.02d);
-			if ((num_smooths & 1) == 1)
-				num_smooths++;                // make it even
-			Qx = new smooth_num[num_smooths];
+			int num_smooths_needed = (int)(factor_base.Length * 1.02d);
+			if ((num_smooths_needed & 1) == 1)
+				num_smooths_needed++;                // make it even
+			
+			List<smooth_num>Qx_local = new List<smooth_num>(num_smooths_needed);
+			Qx = new smooth_num[num_smooths_needed];
 			Qx.Initialize();
+
+			int smooth_looper(BigInteger root, int incr, Func<BigInteger, BigInteger, BigInteger> smooth_func, char spinner)
+			{
+				int count = 0;
+				smooth_num sN = new smooth_num();
+				sN.x = root + incr;
+				while (Qx_local.Count < num_smooths_needed)
+				{
+					sN.Q_of_x = smooth_func(sN.x, N);
+					Debug.Assert(sN.Q_of_x % incr == 0);
+
+					if (IsSmooth(sN.Q_of_x, fb_primorial))
+					{
+						sN.exponents = GetPrimeFactorsII(sN.Q_of_x);
+						Qx_local.Add(sN);
+						Write("{0}\r", spinner);
+					}
+					sN.x += incr;
+					count++;
+				}
+				return count;
+			}
+
+			BigInteger find_diff(int pr) 
+			{
+				BigInteger diff = sqrt;
+				while (!BigInteger.GreatestCommonDivisor(N - diff * diff, pr).Equals(pr))
+					diff--;
+				WriteLine("{0}\ndistance from sqrt: {1}", diff, sqrt - diff);
+				WriteLine("GCD(N - {0}², fb_primorial): {0}\n", BigInteger.GreatestCommonDivisor(N - diff * diff, fb_primorial));
+				Debug.Assert((N - diff * diff) % pr == 0);
+				return diff;
+			}
+
 			int found = 0, tests = 0;
 			partial_expos = new Dictionary<BigInteger, Tuple<uint, List<BigInteger>>>();
 
-			uint C = factor_base[5];
-			BigInteger D = sqrt;
-			while (!BigInteger.GreatestCommonDivisor(N - D * D, C).Equals(C))
-				D--;
-			WriteLine("D: {0}\ndistance from sqrt: {1}", D, sqrt - D);
-			WriteLine("GCD(sqrt, D): {0}\n", BigInteger.GreatestCommonDivisor(N - D * D, FB_Primorial));
+			int C = (int)factor_base[5];
+			BigInteger D = find_diff(C);
 
-			uint A = factor_base[3];
-			BigInteger B = sqrt;
-			while (!BigInteger.GreatestCommonDivisor(N - B * B, A).Equals(A))
-				B--;
-			WriteLine("B: {0}\ndistance from sqrt: {1}", B, sqrt - B);
-			WriteLine("GCD(sqrt, B): {0}", BigInteger.GreatestCommonDivisor(N - B * B, FB_Primorial));
+			int A = (int)factor_base[3];
+			BigInteger B = find_diff(A);
 
-			bool isCongruentMod4 = (N % 4 != 1);
-			WriteLine("isCongruentMod4: {0}\nfactor base primorial # digits: {1}\n", isCongruentMod4, FB_Primorial.ToByteArray().Length);
+			int E = (int)factor_base[7];
+			BigInteger F = find_diff(E);
+
+			int G = (int)factor_base[9];
+			BigInteger H = find_diff(G);
+
+			bool isCongruentMod4 = (N % 4 == 1);
+			WriteLine("N ≡ 1 (Mod 4): {0}\nfactor base primorial # digits: {1}\n", isCongruentMod4, fb_primorial.ToByteArray().Length);
 
 			// Collect smooth numbers
 			Stopwatch sw = new Stopwatch();
@@ -1861,127 +1883,54 @@ namespace RSABigInt
 			List<Task> smooth = new List<Task>();
 			smooth.Add(Task.Run(() =>
 			{
-				BigInteger m = A + B;
-				while (found < num_smooths)
-				{
-					smooth_num sN = new smooth_num();
-					sN.x = m;
-					sN.Q_of_x = sN.x * sN.x - N;
-					Debug.Assert(sN.Q_of_x % A == 0);
-					
-					uint[] expos = null;
-					expos = GetPrimeFactorsII(sN.Q_of_x);
-                    if (expos != null)
-                    //if (IsSmooth(sN.Q_of_x, FB_Primorial))
-                    {
-						Write('.');
-						lock (Qx)
-						{
-							Qx[found].Q_of_x = sN.Q_of_x;
-							Qx[found].x = sN.x;
-							Qx[found].exponents = expos;
-							Interlocked.Increment(ref found);
-						}
-					}
-					m += A;
-                    Interlocked.Increment(ref tests);
-                    //Interlocked.Add(ref x, 2);
-				}
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (a * a - b);
+				Interlocked.Add(ref tests, smooth_looper(B, A, func, '|'));
 			}));
 
 			smooth.Add(Task.Run(() =>
 			{
-				BigInteger m = C + D;
-				while (found < num_smooths)
-				{
-					smooth_num sN = new smooth_num();
-					sN.x = m;
-					sN.Q_of_x = sN.x * sN.x - N;
-                    Debug.Assert(sN.Q_of_x % C == 0);
-
-                    uint[] expos = null;
-					expos = GetPrimeFactorsII(sN.Q_of_x);
-					//if (IsSmooth(sN.Q_of_x, FB_Primorial))
-                    if (expos != null)
-                    {
-						Write('/');
-						lock (Qx)
-						{
-							Qx[found].Q_of_x = sN.Q_of_x;
-							Qx[found].x = sN.x;
-							Qx[found].exponents = expos;
-							Interlocked.Increment(ref found);
-						}
-					}
-					m += C;
-                    Interlocked.Increment(ref tests);
-                    //Interlocked.Add(ref x, 2);
-                }
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (b - a * a);
+				Interlocked.Add(ref tests, smooth_looper(B, -A, func, '/'));
 			}));
 
 			smooth.Add(Task.Run(() =>
 			{
-				BigInteger m = C + D;
-				while (found < num_smooths)
-				{
-					smooth_num sN = new smooth_num();
-					sN.x = m;
-					sN.Q_of_x = N - sN.x * sN.x;
-                    Debug.Assert(sN.Q_of_x % C == 0);
-
-                    uint[] expos = null;
-					expos = GetPrimeFactorsII(sN.Q_of_x);
-                    if (expos != null)
-                    //if (IsSmooth(sN.Q_of_x, FB_Primorial))
-					{
-						Write('?');
-						lock (Qx)
-						{
-							Qx[found].Q_of_x = sN.Q_of_x;
-							Qx[found].x = sN.x;
-							//WriteLine(Qx[found].x);
-							Qx[found].exponents = expos;
-							Interlocked.Increment(ref found);
-						}
-					}
-					m -= C;
-                    Interlocked.Increment(ref tests);
-                    //Interlocked.Add(ref y, -2);
-                }
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (a * a - b);
+				Interlocked.Add(ref tests, smooth_looper(D, C, func, '-'));
 			}));
 
 			smooth.Add(Task.Run(() =>
 			{
-				BigInteger m = A + B;
-				while (found < num_smooths)
-				{
-					smooth_num sN = new smooth_num();
-					sN.x = m;
-					sN.Q_of_x = N - sN.x * sN.x;
-                    Debug.Assert(sN.Q_of_x % A == 0);
-
-                    uint[] expos = null;
-					expos = GetPrimeFactorsII(sN.Q_of_x);
-					if (expos != null)
-
-					//if (IsSmooth(sN.Q_of_x, FB_Primorial))
-					{
-						Write('+');
-						lock (Qx)
-						{
-							Qx[found].Q_of_x = sN.Q_of_x;
-							Qx[found].x = sN.x;
-							Qx[found].exponents = expos;
-							Interlocked.Increment(ref found);
-						}
-					}
-					m -= A;
-                    Interlocked.Increment(ref tests);
-                    //Interlocked.Add(ref y, -2);
-                }
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (b - a * a);
+				Interlocked.Add(ref tests, smooth_looper(D, -C, func, '\\'));
 			}));
 
-			Task.WaitAny(smooth.ToArray());
+			smooth.Add(Task.Run(() =>
+			{
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (a * a - b);
+				Interlocked.Add(ref tests, smooth_looper(F, E, func, '|'));
+			}));
+
+			smooth.Add(Task.Run(() =>
+			{
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (b - a * a);
+				Interlocked.Add(ref tests, smooth_looper(F, -E, func, '/'));
+			}));
+
+			smooth.Add(Task.Run(() =>
+			{
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (a * a - b);
+				Interlocked.Add(ref tests, smooth_looper(H, G, func, '-'));
+			}));
+
+			smooth.Add(Task.Run(() =>
+			{
+				Func<BigInteger, BigInteger, BigInteger> func = (a, b) => (b - a * a);
+				Interlocked.Add(ref tests, smooth_looper(H, -G, func, '\\'));
+			}));
+
+			Task.WaitAll(smooth.ToArray());
+			Qx = Qx_local.ToArray();
 
 			sw.Stop();
 			string strElapsed;
@@ -1990,9 +1939,9 @@ namespace RSABigInt
 			else
 				strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
 
-			WriteLine("\nCollected {0} smooth numbers.\nElapsed time: {1}\n", found, strElapsed);
-			WriteLine("{0:P8} of numbers found were smooth.", found / (double)tests);
-			WriteLine("{0:F1} numbers/sec\n{1}", found / sw.Elapsed.TotalSeconds, new String('-', 100));
+			WriteLine("\nCollected {0} smooth numbers in {1}\n", Qx.Length, strElapsed);
+			WriteLine("{0:P8} of numbers found were smooth.", Qx.Length / (double)tests);
+			WriteLine("{0:F1} numbers/sec\n{1}", Qx.Length / sw.Elapsed.TotalSeconds, new String('-', 100));
 
 			List<BigInteger> extra_primes = new List<BigInteger>(partial_expos.Keys);
 			extra_primes.Sort();
@@ -2014,7 +1963,7 @@ namespace RSABigInt
 		public void Quadratic_Sieve(string S1)
 		{
 			BigInteger N = BigInteger.Parse(S1);
-#region _historical_timings
+			#region _historical_timings
 			//N = BigInteger.Parse("21818232425302600378616644247667406319");
 			// 2495.8 s, 2620 primes
 			// 7217.7 s, 2122 primes, 4244 smooth numbers
@@ -2156,16 +2105,19 @@ namespace RSABigInt
 			//N = BigInteger.Parse("340282366920938463463374607431768211457");
 
 			// "9251887165329150354056716315122396153271557067859755802728429989905317141127"
-#endregion
+			#endregion
 			double logN = BigInteger.Log(N);
 			WriteLine("Log(N): {0:F12}", logN);
+
 			uint sieve_max = (uint)Math.Exp(Math.Sqrt(logN * Math.Log(logN)) * 0.55);        // twiddle-factor
-			WriteLine("sieve_max: {0}", sieve_max);
-			primes = new uint[ARRAY_SIZE];
 			prime_sieve(sieve_max);
+			WriteLine("sieve_max: {0}", sieve_max);
+
+			//primes = new uint[ARRAY_SIZE];
+			Factor_Base(N);
 
             // original Smooth_Numbers only uses 2 threads (Tasks)!
-            Smooth_Numbers(N);
+            //Smooth_Numbers(N);
 
             // Parallel.For implementation
             //Smooth_Numbers2(N);
@@ -2174,7 +2126,7 @@ namespace RSABigInt
             //Smooth_Numbers3(N);
 
             // using list of tasks with multiples of prime factor in root
-            //Smooth_Numbers4(N);
+            Smooth_Numbers4(N);
 #if DEBUG
             Write("Press Enter: ");
 			ReadLine();
@@ -2195,8 +2147,8 @@ namespace RSABigInt
 		{
 			MyBigInteger_Class clsMBI = new MyBigInteger_Class();
 
-			BigInteger p = clsMBI.RandPrime(2);
-			BigInteger q = clsMBI.RandPrime(2);
+			BigInteger p = clsMBI.RandPrime(3);
+			BigInteger q = clsMBI.RandPrime(3);
 			BigInteger N = p * q;
 
 			WriteLine($"{p} x {q} = {N}\n");
