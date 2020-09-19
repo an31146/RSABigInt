@@ -28,7 +28,7 @@ namespace RSABigInt
 	{
 		//private const uint ARRAY_SIZE = 0x166e0e21;
 		private const uint ARRAY_SIZE = 0x10000000;
-		private const uint LIMIT = 1000000;
+		private const uint LIMIT = 4000000;
 		private const int confidence = 15;
 
 		private Random _randObj;
@@ -475,7 +475,7 @@ namespace RSABigInt
 				BigInteger p1, l;
 
 				// assumes p is an odd prime
-				p1 = (p-1)/2;
+				p1 = (p - 1) >> 1;
 				l = BigInteger.ModPow(n, p1, p);
 
 				if (l == 1)
@@ -488,11 +488,11 @@ namespace RSABigInt
 
 		public int Legendre(uint n, uint p)
 		{
-			ulong p1, l = 1;
+			uint p1, l = 1;
 
 			// assumes p is an odd prime
-			p1 = (p - 1) / 2;
-			for (ulong i = 0; i < p1; i++) { 
+			p1 = (p - 1) >> 1;
+			for (uint i = 0; i < p1; i++) { 
 				l *= n; l %= p;
 			}
 
@@ -1232,6 +1232,14 @@ namespace RSABigInt
 			
 			for (int j = 0; j < n; j++)
 			{
+				if ((j & 1) == 1)
+				{
+					ForegroundColor = ConsoleColor.Black;
+					BackgroundColor = ConsoleColor.Gray;
+				}
+				else
+					ResetColor();
+
 				Write($"{primes[j],3} ");
 				for (uint i = 1; i <= a; i++)
 					Write("{0,4}", Legendre(i, primes[j]));
@@ -1338,8 +1346,7 @@ namespace RSABigInt
 			}
 			sw.Stop();
 #if DEBUG
-			string strValue = $"Process_Matrix() Elapsed time: {FormatTimeSpan(sw.Elapsed)}\n";
-			WriteLine(strValue);
+			WriteLine($"Process_Matrix() Elapsed time: {FormatTimeSpan(sw.Elapsed)}\n");
 #endif
 		}
 
@@ -1421,15 +1428,14 @@ namespace RSABigInt
 
 			try
 			{
-				for (int i = matrix.GetLength(0) - 1; i >= 0; i--)                  // number of rows
+				for (int i = matrix.GetLength(0) - 1; i >= 0; i--)		// number of rows
 				{
 					bool bNonNullFound = false;
 					for (int j = 0; j < factor_base.Length; j++)
-						if (matrix[i, j] != 0)                                             // test for null vector
+						if (matrix[i, j] != 0)							// test for null vector
 						{
 							bNonNullFound = true;
 							break;
-							//loopState.Stop();
 						}
 					if (!bNonNullFound)
 					{
@@ -1530,7 +1536,7 @@ namespace RSABigInt
 			catch (OperationCanceledException ex)
 			{
 				WriteLine("Caught exception: {0}\n", ex.Message);
-				WriteLine("\nOperation cancelled, done.");
+				WriteLine("Operation cancelled, done.");
 			}
 			finally
 			{
@@ -1611,13 +1617,8 @@ namespace RSABigInt
 			Qx = Qx_local.ToArray();
 
 			sw.Stop();
-			string strElapsed;
-			if (sw.ElapsedMilliseconds <= 1000)
-				strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-			else
-				strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
 
-			WriteLine("\nCollected {0} smooth numbers.\nElapsed time: {1}\n", Qx.Length , strElapsed);
+			WriteLine("\nCollected {0} smooth numbers.\nElapsed time: {1}\n", Qx.Length , FormatTimeSpan(sw.Elapsed));
 			WriteLine("distances from sqrt: {0}\t{1}", sqrt - tests_loop1, sqrt - tests_loop2);
 			WriteLine("{0:P8} of numbers found were smooth.", (double)N_smooths_needed / (tests_loop1 + tests_loop2));
 			WriteLine("{0:F1} numbers/sec", Qx.Length / sw.Elapsed.TotalSeconds);
@@ -1817,7 +1818,7 @@ namespace RSABigInt
 			BigInteger sqrt = Sqrt(N);
 			Debug.Assert(sqrt * sqrt < N);
 
-			int num_smooths_needed = (int)(factor_base.Length * 1.02d);
+			int num_smooths_needed = (int)(factor_base.Length * 1.05d);
 			if ((num_smooths_needed & 1) == 1)
 				num_smooths_needed++;                // make it even
 			
@@ -1852,7 +1853,7 @@ namespace RSABigInt
 				BigInteger diff = sqrt;
 				while (!BigInteger.GreatestCommonDivisor(N - diff * diff, pr).Equals(pr))
 					diff--;
-				WriteLine("{0}\ndistance from sqrt: {1}", diff, sqrt - diff);
+				WriteLine("diff: 0 = {0} mod {1}\ndistance from sqrt: {2}", N - diff * diff, pr, sqrt - diff);
 				WriteLine("GCD(N - {0}², fb_primorial): {0}\n", BigInteger.GreatestCommonDivisor(N - diff * diff, fb_primorial));
 				Debug.Assert((N - diff * diff) % pr == 0);
 				return diff;
@@ -1933,13 +1934,8 @@ namespace RSABigInt
 			Qx = Qx_local.ToArray();
 
 			sw.Stop();
-			string strElapsed;
-			if (sw.ElapsedMilliseconds <= 1000)
-				strElapsed = String.Format("{0} ms", sw.ElapsedMilliseconds);
-			else
-				strElapsed = String.Format("{0:F1} s", (float)sw.ElapsedMilliseconds / 1000);
 
-			WriteLine("\nCollected {0} smooth numbers in {1}\n", Qx.Length, strElapsed);
+			WriteLine("\nCollected {0} smooth numbers in {1}", Qx.Length, FormatTimeSpan(sw.Elapsed));
 			WriteLine("{0:P8} of numbers found were smooth.", Qx.Length / (double)tests);
 			WriteLine("{0:F1} numbers/sec\n{1}", Qx.Length / sw.Elapsed.TotalSeconds, new String('-', 100));
 
@@ -2161,12 +2157,12 @@ namespace RSABigInt
 			//clsMBI.Pollard_Rho_Test(N.ToString());
 			//clsMBI.PowTest(1000);
 			//clsMBI.Print_Legendre_Table(29, 31);
-			//clsMBI.RSA_Numbers();
-			//clsMBI.Sophie_Germain();
-			clsMBI.Quadratic_Sieve(N.ToString());
-			//clsMBI.SqrtTest2(1000);
+            //clsMBI.RSA_Numbers();
+            //clsMBI.Sophie_Germain();
+            clsMBI.Quadratic_Sieve(N.ToString());
+            //clsMBI.SqrtTest2(1000);
 
-			Write("\nPress Enter: ");
+            Write("\nPress Enter: ");
 			ReadLine();
 		}
 	}   // class

@@ -1,15 +1,3 @@
-Collected 976 smooth numbers in 1125.7 secs
-Collected 1002 smooth numbers in 686.8 secs
-Collected 1006 smooth numbers in 937.2 secs
-
-Collected 882 smooth numbers in 3063.4 secs
-Collected 884 smooth numbers in 4246.0 secs
-
-Collected 1060 smooth numbers in 2536.0 secs
-Collected 1061 smooth numbers in 3099.7 secs
-
-Collected 1022 smooth numbers in 7635.5 secs
-
 
 Collected 2476 smooth numbers in 1521.1 secs
 0.01042318% of numbers found were smooth.
@@ -32,6 +20,51 @@ Collected 2776 smooth numbers in 1946.7 secs
 distances I, J from sqrt_N1: 25800001   25800001
 0.00537984% of numbers found were smooth.
 1.4 numbers/sec
+
+
+Collected 2788 smooth numbers in 3688.2 secs
+0.00603136% of numbers found were smooth.
+0.8 numbers/sec
+
+
+Collected 2484 smooth numbers in 926.1 secs
+0.01192969% of numbers found were smooth.
+2.7 numbers/sec
+
+
+Collected 2514 smooth numbers in 1434.4 s
+0.01311357% of numbers found were smooth.
+1.8 numbers/sec
+
+
+Collected 2514 smooth numbers in 2674.0 secs
+0.00890857% of numbers found were smooth.
+0.9 numbers/sec
+
+
+Collected 2514 smooth numbers in 1320.8 secs
+0.01317790% of numbers found were smooth.
+1.9 numbers/sec
+
+
+Collected 2522 smooth numbers in 1014.2 secs
+0.01216394% of numbers found were smooth.
+2.5 numbers/sec
+
+
+Collected 2144 smooth numbers in 1468.5 s
+0.00909951% of numbers found were smooth.
+1.5 numbers/sec
+
+
+Collected 2104 smooth numbers in 2910.7 secs
+0.00631832% of numbers found were smooth.
+0.7 numbers/sec
+
+
+Collected 1808 smooth numbers in 7176.0 secs
+0.00333080% of numbers found were smooth.
+0.3 numbers/sec
 
 
 
@@ -123,3 +156,17 @@ Elapsed time: 0 ms
    23^1    29^1   107^1   211^1   257^1   313^1   491^1  1361^1  1427^1
    23^1   179^2   197^1   659^1  1301^1  2833^1  3323^1
    23^1    59^1   101^2   313^1   401^1   487^1   569^1  2861^1
+
+
+Collected 976 smooth numbers in 1125.7 secs
+Collected 1002 smooth numbers in 686.8 secs
+Collected 1006 smooth numbers in 937.2 secs
+
+Collected 882 smooth numbers in 3063.4 secs
+Collected 884 smooth numbers in 4246.0 secs
+
+Collected 1060 smooth numbers in 2536.0 secs
+Collected 1061 smooth numbers in 3099.7 secs
+
+Collected 1022 smooth numbers in 7635.5 secs
+
