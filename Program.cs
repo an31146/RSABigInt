@@ -73,26 +73,19 @@ namespace RSABigInt
 
 		public void prime_sieve(uint n)
 		{
-			uint p;
-			primes.Initialize();
-
 			Stopwatch sw = new Stopwatch();
+			primes.Initialize();
 			sw.Start();
-
+			uint p;
 			primes[0] = 2;
 			for (p = 0; primes[p] < n; ) 
 			{
-				//Write("{0,8}", primes[p]);
-				for (uint i = primes[p]*primes[p]; i < n; i += primes[p])
+				for (uint i = primes[p]; i < n; i += primes[p])
 					primes[i] = 1;
-				//Write($"{primes[p],8}");
 				primes[++p] = primes[p-1] + 1;
 				for (; primes[p] < n && primes[primes[p]] == 1; primes[p]++) ;     //find next prime (where s[p]==0)
 			}
-			//WriteLine();
 			Array.Resize(ref primes, (int)p);
-
-			//WriteLine($"{primes.Length} == {p}");
 
 			sw.Stop();
 #if DEBUG

@@ -32,6 +32,16 @@ Collected 2484 smooth numbers in 926.1 secs
 2.7 numbers/sec
 
 
+Collected 2484 smooth numbers in 685.9 secs
+0.01227868% of numbers found were smooth.
+3.6 numbers/sec
+
+
+Collected 2484 smooth numbers in 1027.7 secs
+0.01193915% of numbers found were smooth.
+2.4 numbers/sec
+
+
 Collected 2514 smooth numbers in 1434.4 s
 0.01311357% of numbers found were smooth.
 1.8 numbers/sec
@@ -69,6 +79,12 @@ Collected 1808 smooth numbers in 7176.0 secs
 
 
 105205748195551 x 25532441635037 = 2686159625473305086849120387
+
+a = 76 963498 136815 620529 127836 360397 471574 492529 (44 digits)
+
+b = 12 634978 958431 593847 828617 637185 552549 163944 (44 digits)
+
+6083022738735630616778712320627480208803655383449855997505781526115900343885197266450977
 
 
 81639369383890472319083144055093154391
@@ -115,7 +131,7 @@ d^2 = a^2 + 2ab + b^2
 N + c^2 = d^2
 
 2*a*b + N^2 = a^2 - b^2
-(a-1)(b-1) = N + 2ab - 1
+(a-1)(b-1) = N - 2ab + 1
 
 a^2*b^2 = N^2 - 2ab + 1
 
