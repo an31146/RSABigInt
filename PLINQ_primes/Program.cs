@@ -6,7 +6,9 @@ using System.Linq;
 
 using static System.Console;
 
-#pragma warning disable IDE1006
+#pragma warning disable IDE0005,IDE1006
+//  IDE0005 Using directive is unnecessary
+//  IDE1006 Suppress Naming Rule Violation IDE1006
 namespace PLINQ_primes
 {
     public class Program
@@ -38,7 +40,7 @@ namespace PLINQ_primes
 
         static bool is_prime(int N)
         {
-            int i, sqrt_N = (int)Math.Sqrt(N);
+            int sqrt_N = (int)Math.Sqrt(N);
 
             // 2 is a prime
             if (N == 2)
@@ -46,9 +48,9 @@ namespace PLINQ_primes
             // test if even
             if ((N & 1) == 0)
                 return false;
-            // start trial division at 3
-            for (i = 1; i < _primes.Count && _primes[i] <= sqrt_N; i++)
-                if (N % _primes[i] == 0)
+            // start trial division at _primes[1] = 3
+            for (int i = 1; i < _primes.Count && _primes[i] <= sqrt_N; i++)
+                if (N % _primes[i] == 0)        // _primes[i] divides N
                     return false;
             return true;
         }
@@ -129,6 +131,22 @@ C:\Google Drive\Projects\RSABigInt\PLINQ_primes>dotnet exec bin\Debug\netcoreapp
 primes: 22344479
 
 2. Elapsed time: 234 ms
+
+Press Enter:
+
+*/
+
+/*
+18/08/2021 19:01:27
+C:\Google Drive\Projects\RSABigInt\PLINQ_primes\bin\Release\netcoreapp5.0>PLINQ_primes.exe 1000000000
+
+ primes.Length: 50847534
+
+1.Elapsed time: 176943 ms
+
+primes: 50847534
+
+2.Elapsed time: 264 ms
 
 Press Enter:
 */

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 using static System.Console;
 
-#pragma warning disable IDE0011,IDE0055,IDE1006,IDE1005,IDE1017,CS0219,CS0168
+#pragma warning disable IDE0008,IDE0011,IDE0055,IDE1006,IDE1005,IDE1017,CS0219,CS0168
 #pragma warning disable IDE0049,IDE0051,IDE0060 
 /*
  * IDE1006 Suppress Naming Rule Violation IDE1006
@@ -19,6 +19,7 @@ using static System.Console;
  * IDE1017 Object initialization can be simplified
  * CS0168  The variable 'var' is declared but never used.
  * CS0219  The variable 'variable' is assigned but its value is never used
+ * IDE0008 Use explicit type
  * IDE0049 Name can be simplified
  * IDE0051 Private member 'member' is unused
  * IDE0060 Remove unused parameter
@@ -515,20 +516,20 @@ namespace RSABigInt
 		}
 
 		public int Legendre(BigInteger n, uint p)
-			{
-				BigInteger p_sub1, l;
+		{
+			BigInteger p_sub1, l;
 
-				// assumes p is an odd prime
-				p_sub1 = (p - 1) >> 1;
-				l = BigInteger.ModPow(n, p_sub1, p);
+			// assumes p is an odd prime
+			p_sub1 = (p - 1) >> 1;
+			l = BigInteger.ModPow(n, p_sub1, p);
 
-				if (l == 1)
-					return 1;
-				if (l == 0)
-					return 0;
-				else
-					return -1;
-			}
+			if (l == 1)
+				return 1;
+			if (l == 0)
+				return 0;
+			else
+				return -1;
+		}
 
 		public int Legendre(uint n, uint p)
 		{
@@ -703,9 +704,9 @@ namespace RSABigInt
 			BigInteger Pow2Sub1, rem;
 			string strPow2Sub1;
 
-			//for (int i = 0, x = 2; i < primes.Length; i++)
 			int x = 2;
-			Parallel.For(0, primes.Length, (int i) =>
+			for (int i = 0; i < primes.Length; i++)
+			//Parallel.For(0, primes.Length, (int i) =>
 			{
 				Pow2Sub1 = new BigInteger(1) << (int)primes[i];
 				Pow2Sub1 -= 1;
@@ -722,20 +723,23 @@ namespace RSABigInt
 					x++;
 					//WriteLine("elapsed time: {0} ms\n", sw.ElapsedMilliseconds);
 				}
-			});
+			}
 		}
 
 		bool LucasLehmer(int n)
 		{
 			BigInteger seed = 4;
 			//BigInteger seed= (new BigInteger(1) << n + 1) / 3;     // seed = (2^n + 1) / 3
-			BigInteger div = (new BigInteger(1) << n) - 1;          // div = 2^n - 1
+			BigInteger div = (BigInteger.One << n) - 1;          // div = 2^n - 1
 
 			for (BigInteger i = 3; i <= n; i++)
 			{
-				seed = (seed * seed - 2) % div;
+				//seed = (seed * seed - 2) % div;
+				seed *= seed;
+				seed -= 2;
+				seed %= div;
 			}
-			return (seed == 0);
+			return seed.IsZero;
 		}
 
 		// Use LucasLehmer to determine if 2^n-1 is prime
@@ -775,8 +779,8 @@ namespace RSABigInt
 
 		public void RSA_Numbers()
 		{
-			BigInteger P = RandPrime(10);
-			BigInteger Q = RandPrime(10);
+			BigInteger P = RandPrime(26);
+			BigInteger Q = RandPrime(26);
 			BigInteger N = P * Q;
 			BigInteger e = new BigInteger(0x10001);     // 65537 decimal
 			BigInteger phiN = (P - 1) * (Q - 1);
@@ -792,36 +796,39 @@ namespace RSABigInt
 			WriteLine("d = {0}", d.ToString());
 
 			BigInteger fib1 = Fibonacci(1223);
-			BigInteger enc = BigInteger.ModPow(fib1, e, N);
+			BigInteger M_enc = BigInteger.ModPow(fib1, e, N);
 
 			BigInteger dP = d % (P - 1);
 			BigInteger dQ = d % (Q - 1);
 			BigInteger invQ = InverseMod(Q, P);
+			Debug.Assert((Q * invQ % P).IsOne);
 			// Chinese remainder
-			BigInteger m1 = BigInteger.ModPow(enc, dP, P);
-			BigInteger m2 = BigInteger.ModPow(enc, dQ, Q);
-			BigInteger h = invQ * (m1 - m2);
+			BigInteger m1 = BigInteger.ModPow(M_enc, dP, P);
+			BigInteger m2 = BigInteger.ModPow(M_enc, dQ, Q);
+			BigInteger h = invQ * (m1 - m2) % P;
+			//h %= P;
+			BigInteger M_dec = m2 + h * Q;
 			if (h.Sign < 0)
-				h = -h;
-			h %= P;
-			//BigInteger dec = m2 + h * Q;
+				M_dec += N;
 
-			BigInteger dec = BigInteger.ModPow(enc, d, N);
-			if (dec.Equals(fib1))
+			//BigInteger M_dec = BigInteger.ModPow(enc, d, N);
+			if (M_dec.Equals(fib1))
 				WriteLine("<PASSED>.");
-			//WriteLine("enc = {0}", enc.ToString());
-			//WriteLine("dec = {0}\n", dec.ToString());
+			else if (M_dec < fib1)
+				WriteLine("<FAILED>  bitsize(N) not large enough to encode fib1.");
+			//WriteLine("M_enc = {0}", M_enc.ToString());
+			//WriteLine("M_dec = {0}\n", M_dec.ToString());
 		}
 
 		public void Sophie_Germain()
 		{
-			BigInteger p1 = RandPrime(23);
+			BigInteger p1 = RandPrime(29);
 			//p1 = BigInteger.Parse("2458660187856824879520595114870378250951431099288225378935017566800781119530503250246319150383200577" +
 			//                      "2239534362312959895639176940639315849312418626787213101575564785527284385424689741076546240829379542" + 
 			//                      "7379986300689878537402008701959350545403526654541127010835528445689532162313465868838686033876428021" +
 			//                      "28584806281635941597546342162000054644591515119");
 
-			for (int i = 0; i < 2000; i++)
+			for (int i = 0; i < 10; i++)
 			{
 				while ( !(MillerRabin(p1, 5) && MillerRabin(2 * p1 + 1, 5)) )
 					p1 += 2;
@@ -840,8 +847,8 @@ namespace RSABigInt
 					}
 			}
 			*/
-						WriteLine();
-	}
+			WriteLine();
+		}
 
 		public void ModPow_Misc_Stuff()
 		{
@@ -881,11 +888,6 @@ namespace RSABigInt
 
 			string strNormalizedIntegerTwo = "2" + new String('0', 20000);
 			WriteLine("strNormalizedIntegerTwo.GetHashCode(): 0x{0:X}", strNormalizedIntegerTwo.GetHashCode());
-			//var sqrtTwo = SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo));
-			//WriteLine("{0}\n", sqrtTwo * sqrtTwo);
-
-			//WriteLine(SquareRoot(BigInteger.Parse(strNormalizedIntegerTwo)) + "\n");
-			//WriteLine(Sqrt(BigInteger.Parse(strNormalizedIntegerTwo)) + "\n");
 
 			/*
 			int n = 22291;    //13017;  //7921;   // 1789;   // 3607;
@@ -959,6 +961,11 @@ namespace RSABigInt
 
 			bIsPrime = MillerRabin(P5);
 			WriteLine($"MillerRabin({P5}): {bIsPrime}\nBitCount: {BitCount(P5)}\n");
+
+			var P7 = new BigInteger(PseudoPrime7());
+
+			bIsPrime = MillerRabin(P7);
+			WriteLine($"MillerRabin({P7:x}): {bIsPrime}\nBitCount: {BitCount(P7)}\n");
 
 			var H1 = BigInteger.Parse("4c9a210dd08a0452cc8b31cab00f80a7f870553859f43739920453ccfa5e0e37acf0a0e60c728799" +
 									   "a77fb60d325adf3bdcbeaa97670c5d29e24b917e49c3eaf0d7ccdb4afb479ced74a4c07a0028a860" +
@@ -1069,13 +1076,13 @@ namespace RSABigInt
 				BigInteger p = RandPrime(5);
 				BigInteger q = RandPrime(5);
 				BigInteger N = p * q;
-				BigInteger s = Sqrt(N);
-				BigInteger z = (s + 1) * (s + 1);
+				BigInteger s = Sqrt(N) + 1;
+				BigInteger phi = (p - 1) * (q - 1);
 
 				Write("Round: {0}", count);
 
 				// check that x is the largest integer such that x*x <= z
-				if (z <= N)
+				if (s * s <= N)
 				{
 					WriteLine("\nError at round " + count);
 					WriteLine(s + "\n");
@@ -1083,6 +1090,28 @@ namespace RSABigInt
 				}
 				WriteLine(" <PASSED>.");
 			}
+		}
+
+		public void InverseModTest(int rounds)
+		{
+			int x = _randObj.Next();
+			for (int count = 0; count < rounds; count++)
+            {
+				while (!BigInteger.GreatestCommonDivisor(x, UInt64.MaxValue).IsOne)
+					x = _randObj.Next();
+				BigInteger X_inv = InverseMod(x, UInt64.MaxValue);
+				Debug.Assert((x * X_inv % UInt64.MaxValue).IsOne);
+            }
+			WriteLine("InverseModTest #1 <PASSED>.");
+
+			BigInteger BigPowOfTwoSub1 = BigInteger.One << 4096 - 1;
+			BigInteger x1 = RandPrime(30);          // should be coprime to anything
+			for (int count = 0; count < rounds; count++)
+			{
+				BigInteger X_inv = InverseMod(x1, BigPowOfTwoSub1);
+				Debug.Assert((x1 * X_inv % BigPowOfTwoSub1).IsOne);
+			}
+			WriteLine("InverseModTest #2 <PASSED>.");
 		}
 
 		private byte[] PseudoPrime4a()
@@ -1269,6 +1298,76 @@ namespace RSABigInt
 			};
 		}
 
+		private byte[] PseudoPrime7()
+        {
+			return new byte[] {
+			0x67, 0x2f, 0x75, 0x0e, 0x28, 0xd3, 0x20, 0x02,
+			0xf1, 0xaf, 0x8a, 0x13, 0x2f, 0xc2, 0x00, 0x5a,
+			0xdc, 0xc8, 0x46, 0x78, 0x67, 0x78, 0x66, 0x23,
+			0x3b, 0x23, 0x27, 0x26, 0xbf, 0x08, 0xac, 0x7b,
+			0xbe, 0x77, 0x33, 0x08, 0xc0, 0xa0, 0x2e, 0x3c,
+			0x1c, 0x05, 0x37, 0x03, 0x5b, 0x47, 0xb3, 0x30,
+			0x13, 0x71, 0xa4, 0x20, 0xc2, 0xfa, 0x0c, 0x05,
+			0xca, 0x3c, 0xfd, 0x05, 0xd7, 0x34, 0xd8, 0x24,
+			0xd5, 0xfd, 0xb7, 0x0a, 0x2d, 0xae, 0x45, 0x59,
+			0x99, 0xef, 0x62, 0x10, 0xc4, 0xe5, 0xb3, 0x5b,
+			0x6c, 0xdb, 0x57, 0x11, 0xfa, 0x70, 0x71, 0x0f,
+			0x17, 0x8b, 0xb8, 0x31, 0x6b, 0x3c, 0xf9, 0x0b,
+			0x2b, 0x55, 0x25, 0x57, 0x73, 0x2b, 0xa7, 0x3b,
+			0x89, 0xdc, 0xd5, 0x69, 0x8f, 0x33, 0xef, 0x12,
+			0xb0, 0x81, 0xab, 0x64, 0x7f, 0xa8, 0x9a, 0x26,
+			0x01, 0xa8, 0xf3, 0x5f, 0x68, 0xaa, 0xc6, 0x0b,
+			0x77, 0x1a, 0xd5, 0x1d, 0x0b, 0x71, 0x31, 0x2f,
+			0x71, 0xd8, 0x94, 0x7c, 0xab, 0x47, 0x77, 0x4c,
+			0xc6, 0x65, 0xcf, 0x06, 0x21, 0xa1, 0xda, 0x50,
+			0x75, 0x6f, 0xa5, 0x72, 0x95, 0x8c, 0xd7, 0x40,
+			0x2f, 0xf3, 0x7b, 0x47, 0x87, 0x32, 0x36, 0x3c,
+			0xee, 0xfa, 0xbc, 0x1e, 0x4d, 0x26, 0x64, 0x60,
+			0x1e, 0xc9, 0xec, 0x33, 0xd3, 0x48, 0x91, 0x64,
+			0x0d, 0x50, 0xa2, 0x17, 0xb3, 0xed, 0x9d, 0x42,
+			0xe7, 0xee, 0x5c, 0x68, 0x8d, 0x36, 0x18, 0x76,
+			0xe8, 0xdd, 0x44, 0x4b, 0x42, 0x74, 0xb2, 0x02,
+			0x65, 0x4c, 0x5e, 0x59, 0x4d, 0xc5, 0x44, 0x09,
+			0xa1, 0xc7, 0x97, 0x0a, 0x81, 0xdf, 0xb8, 0x19,
+			0xe7, 0x2e, 0xb9, 0x4e, 0x26, 0x8d, 0x99, 0x78,
+			0xf7, 0x07, 0x6f, 0x0a, 0x8d, 0xa7, 0x25, 0x7f,
+			0x41, 0x4f, 0xc8, 0x78, 0x71, 0x5d, 0x5e, 0x2b,
+			0x69, 0xf5, 0xdd, 0x4d, 0x25, 0x2f, 0x54, 0x32,
+			0x58, 0x1d, 0xff, 0x56, 0xe6, 0x7c, 0xb6, 0x26,
+			0xc9, 0xbf, 0xad, 0x26, 0x37, 0x44, 0xe9, 0x5a,
+			0xcd, 0x39, 0x13, 0x03, 0x53, 0x5c, 0xc9, 0x06,
+			0x77, 0x44, 0x7f, 0x0b, 0x75, 0xcd, 0xad, 0x24,
+			0xb5, 0x7f, 0x2e, 0x33, 0x35, 0x05, 0x19, 0x32,
+			0x47, 0xd8, 0x04, 0x23, 0xf9, 0x98, 0x43, 0x40,
+			0xef, 0x26, 0x69, 0x72, 0x45, 0xc6, 0xc3, 0x5f,
+			0x6c, 0xb8, 0x4f, 0x01, 0x85, 0x21, 0xd8, 0x56,
+			0x1d, 0x7d, 0x5c, 0x3f, 0x24, 0xb4, 0x39, 0x79,
+			0xdb, 0x4a, 0x25, 0x5d, 0x91, 0xcb, 0x37, 0x21,
+			0x29, 0x42, 0x83, 0x25, 0x26, 0xc0, 0x1a, 0x57,
+			0x5c, 0xa5, 0xd5, 0x24, 0x3b, 0xcc, 0x91, 0x7d,
+			0x82, 0x0e, 0x3e, 0x5b, 0x85, 0xf9, 0x7e, 0x7c,
+			0x59, 0x0e, 0x8c, 0x19, 0x11, 0x28, 0x2c, 0x48,
+			0x39, 0x67, 0xe4, 0x45, 0x09, 0x7a, 0xad, 0x0e,
+			0xc7, 0xb0, 0x87, 0x08, 0xe7, 0x24, 0x7e, 0x19,
+			0x15, 0xfa, 0xa7, 0x40, 0x91, 0xd1, 0xaf, 0x6d,
+			0xab, 0xa0, 0xf1, 0x16, 0x82, 0xb6, 0xeb, 0x52,
+			0xe6, 0xf1, 0x73, 0x7b, 0x83, 0x87, 0xb2, 0x71,
+			0x9b, 0x33, 0x55, 0x11, 0xdb, 0x47, 0xe8, 0x17,
+			0x9d, 0x59, 0x75, 0x6f, 0x6f, 0xf3, 0x1a, 0x70,
+			0x81, 0x01, 0x86, 0x56, 0x7d, 0x2a, 0x2d, 0x74,
+			0xe5, 0x9c, 0xe7, 0x55, 0x35, 0x60, 0x8b, 0x3e,
+			0x81, 0xc4, 0xf4, 0x09, 0x13, 0x07, 0xe6, 0x5d,
+			0xed, 0x8a, 0x4d, 0x44, 0x48, 0xf2, 0x46, 0x32,
+			0x4f, 0x87, 0x69, 0x64, 0xc6, 0x59, 0xab, 0x51,
+			0x91, 0xa5, 0x61, 0x28, 0x0a, 0x46, 0xbe, 0x35,
+			0xf3, 0xdd, 0x6b, 0x29, 0xfd, 0xf5, 0x39, 0x5d,
+			0xd3, 0x47, 0x10, 0x52, 0x51, 0x40, 0x31, 0x4a,
+			0xd6, 0x4e, 0x75, 0x1f, 0x45, 0x3d, 0x88, 0x59,
+			0xff, 0xf8, 0xe2, 0x04, 0x9d, 0xe2, 0x83, 0x17,
+			0xd1, 0xa5, 0xb2, 0x61, 0xab, 0x7c, 0x97, 0x90,
+			0x00, };
+		}
+
 		public void Print_Legendre_Table(int a, int n)
 		{
 			Write("  a ");
@@ -1281,7 +1380,7 @@ namespace RSABigInt
 				if ((j & 1) == 1)
 				{
 					ForegroundColor = ConsoleColor.Black;
-					BackgroundColor = ConsoleColor.Gray;
+					BackgroundColor = ConsoleColor.DarkGray;
 				}
 				else
 					ResetColor();
@@ -1333,12 +1432,16 @@ namespace RSABigInt
 		public void Pollard_Rho_Test()
 		{
 			long N = 87256236345731407L;
-            //N = ulong.Parse("4607863703200169");
-            //N = ulong.Parse("373463523233483");
-            //N = ulong.Parse("135723676817");
-            //N = 21530071;
-            //N = 12546257;
-            const int a = 1;
+			//N = 1537228672809129301L;
+			N = 1537228681399063897L;
+			N = 3074457386420448043L;
+			N = 4611686138686472687L;
+			//N = ulong.Parse("4607863703200169");
+			//N = ulong.Parse("373463523233483");
+			//N = ulong.Parse("135723676817");
+			//N = 21530071;
+			//N = 12546257;
+			const int a = 1;
 			Stopwatch sw = new Stopwatch();
 
 			WriteLine($"Pollard_Rho_Test({N})");
@@ -2267,26 +2370,27 @@ namespace RSABigInt
 		{
 			MyBigInteger_Class clsMBI = new MyBigInteger_Class();
 
-			BigInteger p = clsMBI.RandPrime(3);
+			BigInteger p = clsMBI.RandPrime(3);		// 48-bits
 			BigInteger q = clsMBI.RandPrime(3);
 			BigInteger N = p * q;
 
 			WriteLine($"{p} x {q} = {N}\n");
-			Debug.Assert( ((p * p + q * q) >> 1) % 4 == BigInteger.One );
+			Debug.Assert( ((p * p + q * q) >> 1) % 4 == BigInteger.One );       // (p² + q²) / 2 = 1 (mod 4)
 
-            //clsMBI.TwinPrime_Test();                              // outputs to twin_primes.txt
-            //clsMBI.PrimeTriplet_Test();
-            //clsMBI.Mersenne();
-            //clsMBI.Mersenne2(23);
-            //clsMBI.ModPow_Misc_Stuff();
-            //clsMBI.ModPow_Misc_Stuff2();
-            clsMBI.Pollard_Rho_Test();
-            //clsMBI.PowTest(1000);
-            //clsMBI.Print_Legendre_Table(29, 31);
-            //clsMBI.RSA_Numbers();
-            //clsMBI.Sophie_Germain();
-            //clsMBI.Quadratic_Sieve(N);
-            //clsMBI.SqrtTest2(1000);
+			//clsMBI.TwinPrime_Test();                              // outputs to twin_primes.txt
+			//clsMBI.PrimeTriplet_Test();
+			//clsMBI.Mersenne();
+			//clsMBI.Mersenne2(23);
+			//clsMBI.ModPow_Misc_Stuff();
+			//clsMBI.ModPow_Misc_Stuff2();
+			//clsMBI.Pollard_Rho_Test();
+			//clsMBI.PowTest(1000);
+			//clsMBI.Print_Legendre_Table(29, 31);
+			//clsMBI.RSA_Numbers();
+			//clsMBI.Sophie_Germain();
+			//clsMBI.Quadratic_Sieve(N);
+			//clsMBI.SqrtTest2(1000);
+			clsMBI.InverseModTest(1000);
 
             Write("\nPress Enter: ");
 			ReadLine();
