@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 using static System.Console;
 
@@ -60,21 +59,15 @@ namespace segmented_sieve_v3
                 }
             }
 
-            //ParallelOptions options = new ParallelOptions();
-            //options.MaxDegreeOfParallelism = 4;
             foreach (int l in primes)
             {
-                //Write($"{l,12}");
-
                 lock (is_prime)
                 {
                     for (int i = l * l; i <= limit; i += l)
                         is_prime[i] = false;
                 }
             };
-            //WriteLine();
 
-            //Parallel.For(sqrt, limit, (int i) =>
             for (int i = sqrt; i < limit; i++)
             {
                 if (is_prime[i])

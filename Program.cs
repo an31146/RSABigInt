@@ -31,7 +31,7 @@ namespace RSABigInt
 	{
 		//private const uint ARRAY_SIZE = 0x166e0e21;
 		private const uint ARRAY_SIZE = 0x11000000;
-		private const uint LIMIT = 4000000;
+		private const uint LIMIT = 1000000;
 		private const int confidence = 15;
 
 		private Random _randObj;
@@ -68,38 +68,39 @@ namespace RSABigInt
 		// constructor
 		public MyBigInteger_Class()
 		{
-			_randObj = new Random((int)DateTime.Today.Ticks);
-			primes = new uint[ARRAY_SIZE];                  // 131072 elements --- 0x18000000 = 1.5GB array
+			_randObj = new Random((int)DateTime.Today.Ticks);		// Not very random!
+			primes = new uint[ARRAY_SIZE];							// 131072 elements --- 0x18000000 = 1.5GB array
 			factor_base = new uint[ARRAY_SIZE];
 			prime_sieve(LIMIT);
 			fb_primorial = BigInteger.One;
 		}
 
-		public void prime_sieve(uint n)
+		public void prime_sieve(uint N)
 		{
 			Stopwatch sw = new Stopwatch();
 			primes.Initialize();
 			sw.Start();
-			uint p;
+			uint p = 0;
 			primes[0] = 2;
-			for (p = 0; primes[p] < n; ) 
+			while (primes[p] < N) 
 			{
-				for (uint i = primes[p]; i < n; i += primes[p])
+				for (uint i = primes[p]; i < N; i += primes[p])
 					primes[i] = 1;
 				primes[++p] = primes[p-1] + 1;
-				for (; primes[p] < n && primes[primes[p]] == 1; primes[p]++) ;     //find next prime (where s[p]==0)
+				for (; primes[p] < N && primes[primes[p]] == 1; primes[p]++) ;     //find next prime (where s[p]==0)
 			}
 			Array.Resize(ref primes, (int)p);
 
 			sw.Stop();
 #if DEBUG
+			WriteLine("primes[{0}] = {1}", primes.Length, primes.Last());
 			WriteLine("prime_sieve time took: {0}\n", FormatTimeSpan(sw.Elapsed));
 #endif
 		}
 
         private BigInteger InverseMod(BigInteger x, BigInteger n)
 		{
-			if (x.IsEven && n.IsEven)       //if both inputs are even, then inverse doesn't exist
+			if (!BigInteger.GreatestCommonDivisor(x, n).IsOne)       //if GCD(x, n) != 1, then inverse doesn't exist
 				return BigInteger.Zero;
 
 			BigInteger eg_u = x;
@@ -109,39 +110,39 @@ namespace RSABigInt
 			BigInteger eg_C = BigInteger.Zero;
 			BigInteger eg_D = BigInteger.One;
 
-			for (; ; )
+			while (true)
 			{
 				while (eg_u.IsEven)      //while eg_u is even
 				{
-					eg_u /= 2;
+					eg_u >>= 1;
 					if (eg_A.IsEven && eg_B.IsEven)        //if eg_A==eg_B==0 are even
 					{
-						eg_A /= 2;
-						eg_B /= 2;
+						eg_A >>= 1;
+						eg_B >>= 1;
 					}
 					else
 					{
 						eg_A += n;
-						eg_A /= 2;
+						eg_A >>= 1;
 						eg_B -= x;
-						eg_B /= 2;
+						eg_B >>= 1;
 					}
 				}   // while
 
 				while (eg_v.IsEven)      //while eg_v is even
 				{
-					eg_v /= 2;
+					eg_v >>= 1;
 					if (eg_C.IsEven && eg_D.IsEven)         //if eg_C==eg_D==0 mod 2
 					{
-						eg_C /= 2;
-						eg_D /= 2;
+						eg_C >>= 1;
+						eg_D >>= 1;
 					}
 					else
 					{
 						eg_C += n;
-						eg_C /= 2;
+						eg_C >>= 1;
 						eg_D -= x;
-						eg_D /= 2;
+						eg_D >>= 1;
 					}
 				}   // while
 
@@ -158,17 +159,17 @@ namespace RSABigInt
 					eg_D -= eg_B;
 				}
 
-				if (eg_u == BigInteger.Zero)
+				if (eg_u.IsZero)
 				{
 					if (eg_C.Sign == -1)  //make sure answer is non-negative
 						eg_C += n;
 					x = eg_C;
 
-					if (eg_v != BigInteger.One)    //if GCD_(x,n)!=1, then there is no inverse
+					if (!eg_v.IsOne)    //if GCD_(x,n)!=1, then there is no inverse
 						x = BigInteger.Zero;
 					return x;
 				}
-			}   // for
+			}   // while (true)
 		}
 
 		public BigInteger RandPrime(int size, int conf = confidence)
@@ -515,7 +516,7 @@ namespace RSABigInt
 			return S.IsOne;         // smooth number with prime bound in factor_base
 		}
 
-		public int Legendre(BigInteger n, uint p)
+		public int Legendre(BigInteger n, BigInteger p)
 		{
 			BigInteger p_sub1, l;
 
@@ -537,8 +538,10 @@ namespace RSABigInt
 			// assumes p is an odd prime
 			uint p_sub1 = (p - 1) >> 1;
 
+			// naïve modulo exponentiation
 			for (uint i = 0; i < p_sub1; i++) { 
-				l *= n; l %= p;
+				l *= n;
+				l %= p;
 			}
 
 			if (l <= 1)
@@ -1094,6 +1097,9 @@ namespace RSABigInt
 
 		public void InverseModTest(int rounds)
 		{
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+
 			int x = _randObj.Next();
 			for (int count = 0; count < rounds; count++)
             {
@@ -1102,16 +1108,20 @@ namespace RSABigInt
 				BigInteger X_inv = InverseMod(x, UInt64.MaxValue);
 				Debug.Assert((x * X_inv % UInt64.MaxValue).IsOne);
             }
-			WriteLine("InverseModTest #1 <PASSED>.");
+			sw.Stop();
+			WriteLine("InverseModTest #1 <PASSED>.\nElapsed time: {0}\n", FormatTimeSpan(sw.Elapsed));
 
 			BigInteger BigPowOfTwoSub1 = BigInteger.One << 4096 - 1;
-			BigInteger x1 = RandPrime(30);          // should be coprime to anything
+			BigInteger x1 = RandPrime(30);          // should be coprime to anything (but itself)
+
+			sw.Restart();
 			for (int count = 0; count < rounds; count++)
 			{
 				BigInteger X_inv = InverseMod(x1, BigPowOfTwoSub1);
 				Debug.Assert((x1 * X_inv % BigPowOfTwoSub1).IsOne);
 			}
-			WriteLine("InverseModTest #2 <PASSED>.");
+			sw.Stop();
+			WriteLine("InverseModTest #2 <PASSED>.\nElapsed time: {0}", FormatTimeSpan(sw.Elapsed));
 		}
 
 		private byte[] PseudoPrime4a()
@@ -2324,11 +2334,11 @@ namespace RSABigInt
 			player.SoundLocation = Environment.GetEnvironmentVariable("WinDir") + @"\Media\Windows Notify System Generic.wav";
 			player.LoadAsync();
 
-			// ecmc.java
-			//Temp = Math.log(NbrToFactor.doubleValue());
-			//nbrPrimes = (int)Math.exp(Math.sqrt(Temp * Math.log(Temp)) * 0.318);
+            // ecmc.java
+            //Temp = Math.log(NbrToFactor.doubleValue());
+            //nbrPrimes = (int)Math.exp(Math.sqrt(Temp * Math.log(Temp)) * 0.318);
 
-			uint sieve_max = (uint)Math.Exp(Math.Sqrt(logN * Math.Log(logN)) * 0.5);        // twiddle-factor
+            uint sieve_max = (uint)Math.Exp(Math.Sqrt(logN * Math.Log(logN)) * 0.5);        // twiddle-factor
             prime_sieve(sieve_max);
             WriteLine("sieve_max: {0}", sieve_max);
 
@@ -2336,7 +2346,7 @@ namespace RSABigInt
 			Factor_Base(N);
 
             // original Smooth_Numbers only uses 4 threads (Tasks)!
-            //Smooth_Numbers(N);
+            Smooth_Numbers(N);
 
             // Parallel.For implementation
             //Smooth_Numbers2(N);
@@ -2345,7 +2355,7 @@ namespace RSABigInt
             //Smooth_Numbers3(N);
 
             // using list of tasks with multiples of prime factor in root
-            Smooth_Numbers4(N);
+            //Smooth_Numbers4(N);
 
             //Process_Matrix();
             Process_MatrixII();
@@ -2377,20 +2387,20 @@ namespace RSABigInt
 			WriteLine($"{p} x {q} = {N}\n");
 			Debug.Assert( ((p * p + q * q) >> 1) % 4 == BigInteger.One );       // (p² + q²) / 2 = 1 (mod 4)
 
-			//clsMBI.TwinPrime_Test();                              // outputs to twin_primes.txt
-			//clsMBI.PrimeTriplet_Test();
-			//clsMBI.Mersenne();
-			//clsMBI.Mersenne2(23);
-			//clsMBI.ModPow_Misc_Stuff();
-			//clsMBI.ModPow_Misc_Stuff2();
-			//clsMBI.Pollard_Rho_Test();
-			//clsMBI.PowTest(1000);
-			//clsMBI.Print_Legendre_Table(29, 31);
-			//clsMBI.RSA_Numbers();
-			//clsMBI.Sophie_Germain();
-			//clsMBI.Quadratic_Sieve(N);
-			//clsMBI.SqrtTest2(1000);
-			clsMBI.InverseModTest(1000);
+            //clsMBI.TwinPrime_Test();                              // outputs to twin_primes.txt
+            //clsMBI.PrimeTriplet_Test();
+            //clsMBI.Mersenne();
+            //clsMBI.Mersenne2(23);
+            //clsMBI.ModPow_Misc_Stuff();
+            //clsMBI.ModPow_Misc_Stuff2();
+            //clsMBI.Pollard_Rho_Test();
+            //clsMBI.PowTest(1000);
+            //clsMBI.Print_Legendre_Table(29, 31);
+            //clsMBI.RSA_Numbers();
+            //clsMBI.Sophie_Germain();
+            //clsMBI.Quadratic_Sieve(N);
+            //clsMBI.SqrtTest2(1000);
+            clsMBI.InverseModTest(1000);
 
             Write("\nPress Enter: ");
 			ReadLine();
