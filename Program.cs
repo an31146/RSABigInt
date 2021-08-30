@@ -119,9 +119,7 @@ namespace RSABigInt
 					{
 						eg_A >>= 1;
 						eg_B >>= 1;
-					}
-					else
-					{
+					} else {
 						eg_A += n;
 						eg_A >>= 1;
 						eg_B -= x;
@@ -136,9 +134,7 @@ namespace RSABigInt
 					{
 						eg_C >>= 1;
 						eg_D >>= 1;
-					}
-					else
-					{
+					} else {
 						eg_C += n;
 						eg_C >>= 1;
 						eg_D -= x;
@@ -151,9 +147,7 @@ namespace RSABigInt
 					eg_u -= eg_v;
 					eg_A -= eg_C;
 					eg_B -= eg_D;
-				}
-				else
-				{                        //eg_v > eg_u
+				} else {                        //eg_v > eg_u
 					eg_v -= eg_u;
 					eg_C -= eg_A;
 					eg_D -= eg_B;
@@ -286,8 +280,8 @@ namespace RSABigInt
 			}
 			sw.Stop();
 #if DEBUG
-			WriteLine("iterations: {0}", i);
-			WriteLine("\nSqrt({0})\nElapsed time: {1}\n", x, FormatTimeSpan(sw.Elapsed));
+			Debug.WriteLine("iterations: {0}", i);
+			Debug.WriteLine("\nSqrt({0})\nElapsed time: {1}\n", x, FormatTimeSpan(sw.Elapsed));
 #endif
 			return y;
 		}
@@ -324,7 +318,7 @@ namespace RSABigInt
 
 			sw.Stop();
 #if DEBUG
-			WriteLine("\nFactorial({0}) Elapsed time: {1}\n", n, FormatTimeSpan(sw.Elapsed));
+			WriteLine("\nFibonacci({0}) Elapsed time: {1}\n", n, FormatTimeSpan(sw.Elapsed));
 #endif
 			return Fn_plus_one;
 		}
@@ -553,10 +547,10 @@ namespace RSABigInt
 		public bool MillerRabin(BigInteger n, int k = confidence)
 		{
 			int[] base_primes = {
-				2,   3,   5,   7,  11,  13,  17,  19,
-				23,  29,  31,  37,  41,  43,  47,  53,
-				59,  61,  67,  71,  73,  79,  83,  89,
-				97, 101, 103, 107, 109, 113, 127, 131,
+				  2,   3,   5,   7,  11,  13,  17,  19,
+				 23,  29,  31,  37,  41,  43,  47,  53,
+				 59,  61,  67,  71,  73,  79,  83,  89,
+				 97, 101, 103, 107, 109, 113, 127, 131,
 				137, 139, 149, 151, 157, 163, 167, 173,
 				179, 181, 191, 193, 197, 199, 211, 223,
 				227, 229, 233, 239, 241, 251, 257, 263, 
@@ -648,7 +642,7 @@ namespace RSABigInt
 
 		public void TwinPrime_Test()
 		{
-			BigInteger P = RandPrime(2);
+			BigInteger P = RandPrime(32);
 
 			try
 			{
@@ -782,8 +776,8 @@ namespace RSABigInt
 
 		public void RSA_Numbers()
 		{
-			BigInteger P = RandPrime(26);
-			BigInteger Q = RandPrime(26);
+			BigInteger P = RandPrime(28);
+			BigInteger Q = RandPrime(28);
 			BigInteger N = P * Q;
 			BigInteger e = new BigInteger(0x10001);     // 65537 decimal
 			BigInteger phiN = (P - 1) * (Q - 1);
@@ -799,12 +793,17 @@ namespace RSABigInt
 			WriteLine("d = {0}", d.ToString());
 
 			BigInteger fib1 = Fibonacci(1223);
+			var fib1_str = fib1.ToString();
+			WriteLine($"fib1.ToString().Length : {fib1_str.Length} digits");
+			WriteLine($"fib1.ToString(): {fib1_str.Substring(1, 10)}...{fib1_str.Substring(fib1_str.Length - 10)}");
+
 			BigInteger M_enc = BigInteger.ModPow(fib1, e, N);
 
 			BigInteger dP = d % (P - 1);
 			BigInteger dQ = d % (Q - 1);
 			BigInteger invQ = InverseMod(Q, P);
 			Debug.Assert((Q * invQ % P).IsOne);
+			
 			// Chinese remainder
 			BigInteger m1 = BigInteger.ModPow(M_enc, dP, P);
 			BigInteger m2 = BigInteger.ModPow(M_enc, dQ, Q);
@@ -1062,7 +1061,7 @@ namespace RSABigInt
 				BigInteger x = Sqrt(y);
 				BigInteger z = (x + 1) * (x + 1);
 
-				Write("Round: {0}", count);
+				//Write("Round: {0}", count);
 
 				// check that x is the largest integer such that x*x <= z
 				if (z <= y)
@@ -1071,8 +1070,8 @@ namespace RSABigInt
 					WriteLine(x + "\n");
 					return;
 				}
-				WriteLine(" <PASSED>.");
 			}
+			WriteLine("{0} rounds in #1 <PASSED>.", rounds);
 
 			for (int count = 0; count < rounds; count++)
 			{
@@ -1082,7 +1081,7 @@ namespace RSABigInt
 				BigInteger s = Sqrt(N) + 1;
 				BigInteger phi = (p - 1) * (q - 1);
 
-				Write("Round: {0}", count);
+				//Write("Round: {0}", count);
 
 				// check that x is the largest integer such that x*x <= z
 				if (s * s <= N)
@@ -1091,8 +1090,8 @@ namespace RSABigInt
 					WriteLine(s + "\n");
 					return;
 				}
-				WriteLine(" <PASSED>.");
 			}
+			WriteLine("{0} rounds in #2 <PASSED>.", rounds);
 		}
 
 		public void InverseModTest(int rounds)
@@ -1111,7 +1110,7 @@ namespace RSABigInt
 			sw.Stop();
 			WriteLine("InverseModTest #1 <PASSED>.\nElapsed time: {0}\n", FormatTimeSpan(sw.Elapsed));
 
-			BigInteger BigPowOfTwoSub1 = BigInteger.One << 4096 - 1;
+			BigInteger BigPowOfTwoSub1 = (BigInteger.One << 16384) - 1;
 			BigInteger x1 = RandPrime(30);          // should be coprime to anything (but itself)
 
 			sw.Restart();

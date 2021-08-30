@@ -27,8 +27,7 @@ namespace segmented_sieve_v2
         ///
         static void segmented_sieve(int limit, int segment_size = L1D_CACHE_SIZE)
         {
-            int sqrt = (int)Math.Sqrt((double)limit);
-            //double twin_prime_const = 1.0d;
+            int sqrt = (int)Math.Sqrt(limit);
             long count = (limit < 2) ? 0 : 1;
 
             // generate small primes <= sqrt
@@ -41,7 +40,7 @@ namespace segmented_sieve_v2
             }
 
             List<int> primes = new List<int>();
-            for (int i = 2; i < sqrt; i++)
+            for (int i = 2; i <= sqrt; i++)
             {
                 if (is_prime[i])
                 {
@@ -49,9 +48,8 @@ namespace segmented_sieve_v2
                 }
             }
 
-            // Note to self - parallelizing this doesn't help, 39s vs. 13s for single thread.
-            ParallelOptions options = new ParallelOptions();
-            options.MaxDegreeOfParallelism = 2;
+            // Note to self - parallelizing this makes this worse!  48s vs. 13s for single thread.
+            ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
             Parallel.ForEach(primes, options, (int l) =>
             {
                 lock (is_prime)
@@ -70,17 +68,23 @@ namespace segmented_sieve_v2
                     }
             });
             WriteLine("\n\n{0} primes found.", primes.Count);
-
-            //cout << "twin prime constant: " << twin_prime_const << endl;
         }
         static void Main(string[] args)
         {
             // generate the primes below this number
-            int limit = 1000000000;
+            int limit = 1000000;
             Stopwatch clock = new Stopwatch();
 
             if (args.Length >= 1)
-                limit = int.Parse(args[0]);
+                try
+                {
+                    limit = int.Parse(args[0]);
+                }
+                catch (OverflowException ex)
+                {
+                    WriteLine("OverflowException: " + ex.Message);
+                    Environment.Exit(-1);
+                }
 
             int size = L1D_CACHE_SIZE;
             if (args.Length >= 2)

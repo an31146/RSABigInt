@@ -27,7 +27,6 @@ namespace segmented_sieve
         static void segmented_sieve(Int64 limit, int segment_size = L1D_CACHE_SIZE)
         {
             int sqrt = (int)Math.Sqrt((double)limit);
-            //double twin_prime_const = 1.0d;
             long count = (limit < 2) ? 0 : 1;
             int s = 2;
             int n = 3;
@@ -70,25 +69,26 @@ namespace segmented_sieve
                 }
                 for (; n <= high; n += 2)
                     count += segment[n - low] ? 1 : 0;
-                    /*if (segment[n - low])
-                    {
-                        WriteLine("{0,10}", n);
-                        count++;
-                        //twin_prime_const *= 1.0d - 1.0d / (double)((n - 1) * (n - 1));
-                    }*/
-            }
+            }   // for (... low <= limit
 
             WriteLine("\n\n{0} primes found.", count);
-            //cout << "twin prime constant: " << twin_prime_const << endl;
         }
         static void Main(string[] args)
         {
             // generate the primes below this number
-            long limit = 100000000;
+            int limit = 100000000;
             Stopwatch clock = new Stopwatch();
 
             if (args.Length >= 1)
-                limit = Int64.Parse(args[0]);
+                try
+                {
+                    limit = Int32.Parse(args[0]);
+                }
+                catch (OverflowException ex)
+                {
+                    WriteLine("OverflowException: " + ex.Message);
+                    Environment.Exit(-1);
+                }
 
             int size = L1D_CACHE_SIZE;
             if (args.Length >= 2)

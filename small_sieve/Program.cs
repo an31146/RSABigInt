@@ -21,7 +21,7 @@ namespace small_sieve
             if (data[1] == 0)
                 for (i = 0; i < 256; i++)
                     for (j = i ^ 255; j != 0; j >>= 1)
-                        if ( (j & 1) == 1)
+                        if ((j & 1) == 1)
                             data[i]++;
 
             for (i = 0; i < size; i += 4)
