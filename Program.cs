@@ -1689,14 +1689,12 @@ namespace RSABigInt
 		private void Calculate_Factors_II(BigInteger N1)
 		{
 			CancellationTokenSource cancellationSource = new CancellationTokenSource();
-			Task[] sqrtTasks = new Task[MatrixII.Length];
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
 			try
 			{
 				for (int i = MatrixII.Length - 1; i >= 0; i--)
-				//sqrtTasks[i] = new Task(() =>
 				{
 					bool bNonNullFound = false;
 					for (int j = 0; j < factor_base.Length; j++)
@@ -1727,14 +1725,13 @@ namespace RSABigInt
 							if ( !(P.IsOne || P.Equals(N1)) )
 							{
 								BigInteger Q = N1 / P;
-								WriteLine("\nThread ID #{0}\nFactors: {1}, {2}\n", Task.CurrentId, P, Q);
+								WriteLine("\nTask ID #{0}\nFactors: {1}, {2}\n", Task.CurrentId, P, Q);
 								cancellationSource.Cancel();
 								throw new OperationCanceledException();
 							}
 						}
 					}
-				} //, cancellationSource.Token);
-				//Task.WaitAll(sqrtTasks, cancellationSource.Token);
+				}
 			}
 			catch (OperationCanceledException ex)
 			{
@@ -1852,10 +1849,7 @@ namespace RSABigInt
             Stopwatch sw = new Stopwatch();
 			sw.Start();
 
-            //smooth_num[] Q1x = new smooth_num[N_smooths * N_smooths * 8];
-            //Q1x.Initialize();
             int k = 0;
-			string gcdStr;
             while (k < N_smooths)
             {
                 CancellationTokenSource cancellationSource = new CancellationTokenSource();
@@ -1864,10 +1858,7 @@ namespace RSABigInt
                     CancellationToken = cancellationSource.Token,
                     MaxDegreeOfParallelism = Environment.ProcessorCount
                 };
-				//uint n = 0;
-				//while (n < N_smooths * N_smooths)
 
-				gcdStr = "";
                 List<smooth_num> Q1x = new List<smooth_num>(20000);
                 Parallel.For(0, 10000, options, n =>
                 {
@@ -1897,6 +1888,7 @@ namespace RSABigInt
                 J -= 10000;
                 I += 10000;
 
+				string gcdStr = "";
 				/*
 				Q1x.Sort(new sort_smooth_num_Helper());
 				foreach (var q1 in Q1x)
@@ -2345,10 +2337,10 @@ namespace RSABigInt
 			Factor_Base(N);
 
             // original Smooth_Numbers only uses 4 threads (Tasks)!
-            Smooth_Numbers(N);
+            //Smooth_Numbers(N);
 
             // Parallel.For implementation
-            //Smooth_Numbers2(N);
+            Smooth_Numbers2(N);
 
             // Parallel.For now within GetPrimeFactors function
             //Smooth_Numbers3(N);
@@ -2397,9 +2389,9 @@ namespace RSABigInt
             //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
             //clsMBI.Sophie_Germain();
-            //clsMBI.Quadratic_Sieve(N);
+            clsMBI.Quadratic_Sieve(N);
             //clsMBI.SqrtTest2(1000);
-            clsMBI.InverseModTest(1000);
+            //clsMBI.InverseModTest(1000);
 
             Write("\nPress Enter: ");
 			ReadLine();
