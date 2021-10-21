@@ -1198,6 +1198,10 @@ namespace RSABigInt
 			};
 		}
 
+		/// <summary>
+		/// Hardcoded 4096-bit pseudoprime
+		/// </summary>
+		/// <returns>byte array containing pseudoprime</returns>
 		private byte[] PseudoPrime5()
 		{
 			return new byte[]
