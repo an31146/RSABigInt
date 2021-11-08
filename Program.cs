@@ -182,11 +182,12 @@ namespace RSABigInt
 			rnd |= 1;
 			rem = BigInteger.ModPow(a, rnd - 1, rnd);
 
-			while ( !(rem.IsOne || MillerRabin(rnd, conf)) )
+			while (!rem.IsOne)
 			{
 				rnd += 2;
-				rem = BigInteger.ModPow(a, rnd - 1, rnd);
-			}
+                rem = BigInteger.ModPow(a, rnd - 1, rnd);
+            }
+			Debug.Assert(MillerRabin(rnd));
 			sw.Stop();
 #if DEBUG
 			WriteLine("RandPrime({0})\nElapsed time: {1}\n", size, FormatTimeSpan(sw.Elapsed));
@@ -575,11 +576,15 @@ namespace RSABigInt
 			for (int round = 0; round < k; round++)
 			{
 				BigInteger x = BigInteger.ModPow(base_primes[round], r, n);
-				for (int i = 0; i < s && !x.IsOne; i++)
+				if (x.IsOne || x == n - 1)
+					continue; 
+				for (int i = 0; i < s - 1; i++)
 				{
 					x = (x * x) % n;
+					if (x == n - 1)
+						break;
 				}
-				if (!x.IsOne && x != n - 1)
+				if (x != n - 1)
 					return false;		// composite
 			}
 			return true;		// probable prime
