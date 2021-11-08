@@ -72,7 +72,6 @@ namespace RSABigInt
 			primes = new uint[ARRAY_SIZE];							// 131072 elements --- 0x18000000 = 1.5GB array
 			factor_base = new uint[ARRAY_SIZE];
 			prime_sieve(LIMIT);
-			fb_primorial = BigInteger.One;
 		}
 
 		public void prime_sieve(uint N)
@@ -481,6 +480,7 @@ namespace RSABigInt
 		private void Factor_Base(BigInteger N)
 		{
 			int j = 0;
+			fb_primorial = BigInteger.One;
 			foreach (uint pr in primes)
 				if (Legendre(N, pr) == 1)                // add primes to FB array if it is a quadratic residue of N
 				{
@@ -575,16 +575,14 @@ namespace RSABigInt
 			for (int round = 0; round < k; round++)
 			{
 				BigInteger x = BigInteger.ModPow(base_primes[round], r, n);
-				for (int i = 0; i < s; i++)
+				for (int i = 0; i < s && !x.IsOne; i++)
 				{
 					x = (x * x) % n;
-					if (x.IsOne)
-						break;
 				}
 				if (!x.IsOne && x != n - 1)
-					return false;
+					return false;		// composite
 			}
-			return true;
+			return true;		// probable prime
 		}
 
 		public void PrimeTriplet_Test()
@@ -2386,14 +2384,14 @@ namespace RSABigInt
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne();
             //clsMBI.Mersenne2(23);
-            //clsMBI.ModPow_Misc_Stuff();
+            clsMBI.ModPow_Misc_Stuff();
             //clsMBI.ModPow_Misc_Stuff2();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.PowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
             //clsMBI.Sophie_Germain();
-            clsMBI.Quadratic_Sieve(N);
+            //clsMBI.Quadratic_Sieve(N);
             //clsMBI.SqrtTest2(1000);
             //clsMBI.InverseModTest(1000);
 
