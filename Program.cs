@@ -860,28 +860,35 @@ namespace RSABigInt
 			var N = RandPrime(size: 63);
 			double Temp = BigInteger.Log10(N);
 			int nbrPrimes = (int)Math.Exp(Math.Sqrt(Temp * Math.Log(Temp)) * 0.618);
+			Stopwatch sw = new Stopwatch();
 
 			WriteLine("bitCount(N): {0}\n", BitCount(N));
 			WriteLine("ByteArrayStruct({0}) = \n{1}\n", N, ByteArrayStruct(N.ToByteArray()));
 
-			var T1 = BigInteger.Pow(new BigInteger(2), 1048576);                        // 315653 digit number!
-			var T2 = (new BigInteger(1) << 9689) - 1;                                   // Should be a Mersenne prime.
-			double LogT1 = BigInteger.Log10(T1);
-			
-
-			//StreamWriter file1 = new StreamWriter("output.txt", false);
-			//file1.WriteLine(T1.ToString());
-			//file1.Close();
-
-			Stopwatch sw = new Stopwatch();
-			BigInteger T3;
 			sw.Start();
+			{
+				var T1 = BigInteger.Pow(new BigInteger(2), 1048576);        // 315653 digit number!
+				double LogT1 = BigInteger.Log10(T1);
+			}
+			sw.Stop();
+			WriteLine("T1 = BigInteger.Pow(2, 1048576) elapsed time: {0} ms\n", sw.ElapsedMilliseconds);       // ModPow time: 12453 ms
+
+			var T2 = (new BigInteger(1) << 9689) - 1;                       // Should be a Mersenne prime.
+			//WriteLine($"T2.Length: {BigInteger.Log10(T2):N0} digits\n");
+            WriteLine($"T2.Length: {T2.ToString().Length:N0} digits\n");
+
+            //StreamWriter file1 = new StreamWriter("output.txt", false);
+            //file1.WriteLine(T1.ToString());
+            //file1.Close();
+
+            BigInteger T3;
+			sw.Restart();
 			{
 				T3 = BigInteger.ModPow(new BigInteger(257), T2 - 1, T2);
 			}
 			sw.Stop();
 
-			if (T3.IsOne)                                                                // This could take a few hours!
+			if (T3.IsOne)                                                                // This could take a few seconds!
 				WriteLine("ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));             // ModPow time: 12453 ms
 
 			sw.Restart();
@@ -903,13 +910,19 @@ namespace RSABigInt
 
 		public void ModPow_Misc_Stuff2()
 		{
+			void test_it(BigInteger N, bool hex = false)
+            {
+				bool bIsPrime = MillerRabin(N);
+				if (!hex)
+					WriteLine($"MillerRabin({N}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
+				else
+					WriteLine($"MillerRabin({N:x}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
+			}
+
 			var P1 = BigInteger.Parse("8949969815784082905285113653565030657117978813653332368993611264200624281180341263589905784897611545421273844719391941113720317582959695290277880367278839");
-			bool bIsPrime = MillerRabin(P1);
-			WriteLine($"MillerRabin({P1}): {bIsPrime}\nBitCount: {BitCount(P1)}\n");
 			
 			var P1a = BigInteger.Parse("2367495770217142995264827948666809233066409497699870112003149352380375124855230068487109373226251983");
-			bIsPrime = MillerRabin(P1a);
-			WriteLine($"MillerRabin({P1a}): {bIsPrime}\nBitCount: {BitCount(P1a)}\n");
+			test_it(P1a);
 
 			var P2 = new BigInteger(new byte[] {
 				0x95, 0xe3, 0x5d, 0x14, 0xe5, 0x30, 0x1e, 0xbd,  0x76, 0x92, 0xa1, 0x26, 0xe7, 0xfa, 0xe2, 0xef,
@@ -918,9 +931,7 @@ namespace RSABigInt
 				0xa8, 0xd5, 0x0e, 0x0a, 0x81, 0xae, 0x16, 0x84,  0xb5, 0x08, 0x6b, 0xef, 0x68, 0x30, 0x01, 0xe7,
 				0x00
 			});
-
-			bIsPrime = MillerRabin(P2);
-			WriteLine($"MillerRabin({P2}): {bIsPrime}\nBitCount: {BitCount(P2)}\n");
+			test_it(P2);
 
 			var P3 = new BigInteger(new byte[] {
 				0x81, 0x3f, 0x9c, 0x81, 0x31, 0x78, 0x58, 0xa1,  0xcd, 0xbd, 0xdd, 0xdb, 0xc9, 0xa7, 0xb1, 0xcf,
@@ -948,29 +959,25 @@ namespace RSABigInt
 				0x00
 			});
 			*/
-			bIsPrime = MillerRabin(P3);
-			WriteLine($"MillerRabin({P3}): {bIsPrime}\nBitCount: {BitCount(P3)}\n");
-
-			var P4a = new BigInteger(PseudoPrime4a());
-
-			var P4b = new BigInteger(PseudoPrime4b());
-
-			var P4c = new BigInteger(PseudoPrime4c());
+			test_it(P3);
 
 			var P4d = new BigInteger(PseudoPrime4d());
+			test_it(P4d);
 
-			bIsPrime = MillerRabin(P4a);
-			WriteLine($"MillerRabin({P4a}): {bIsPrime}\nBitCount: {BitCount(P4a)}\n");
+			var P4c = new BigInteger(PseudoPrime4c());
+			test_it(P4c);
+
+			var P4b = new BigInteger(PseudoPrime4b());
+			test_it(P4b);
+
+			var P4a = new BigInteger(PseudoPrime4a());
+			test_it(P4a);
 
 			var P5 = new BigInteger(PseudoPrime5c());
-
-			bIsPrime = MillerRabin(P5);
-			WriteLine($"MillerRabin({P5}): {bIsPrime}\nBitCount: {BitCount(P5)}\n");
+			test_it(P5);
 
 			var P7 = new BigInteger(PseudoPrime7());
-
-			bIsPrime = MillerRabin(P7);
-			WriteLine($"MillerRabin({P7:x}): {bIsPrime}\nBitCount: {BitCount(P7)}\n");
+			test_it(P7, true);
 
 			var H1 = BigInteger.Parse("4c9a210dd08a0452cc8b31cab00f80a7f870553859f43739920453ccfa5e0e37acf0a0e60c728799" +
 									   "a77fb60d325adf3bdcbeaa97670c5d29e24b917e49c3eaf0d7ccdb4afb479ced74a4c07a0028a860" +
@@ -982,8 +989,7 @@ namespace RSABigInt
 									   "4bc3495b0a6867824a5201d68a47b7482e53e0a87e1cde253b67ccba18e4aa7810bf2e42f677d71a" +
 									   "e2ae885131a0c43b777220158a38382b484be7c04fac0550a805f735acc372d3db09c495a5bbe9cc" +
 									   "ad31553e111bc66d2ae2d711728f8782ca7fa2c65e5b51e819a0b0780ddf587ef0963d4ec80a4bf9a571dd", NumberStyles.HexNumber);
-			bIsPrime = MillerRabin(H1);
-			WriteLine($"MillerRabin({H1:x}): {bIsPrime}\nBitCount: {BitCount(H1)}\n");
+			test_it(H1, true);
 
 			var H2 = BigInteger.Parse(
 				"16ebe06bfcb56920ca13179c1f17bf2b791f590741bb963e81b65c3b893cfed4010ff65dbfb27aa6146cd1fa248ad4af853ac583db9ae52194eaa7" +
@@ -1000,8 +1006,7 @@ namespace RSABigInt
 				"5a8c3c43d580e452d67f545b4ab737510f5f138b982064e66125c2028224c8844ec505fe8641d4f85e201d709e035e84118320baf9ad7071798902" +
 				"f11c14d76bb3e2b0f3ee795601e417ae14f49ea0cf9e5b086f0ff6b33699e316630d75ec9e7f1b429f84749e9424992ff6432367d27b4b2daffdb4" +
 				"60576f6915ae1eea17c1b18b892a9c78abed607b67d4f4edc2c79e274c5d275a3cb84144bea7fb", NumberStyles.HexNumber);
-			bIsPrime = MillerRabin(H2);
-			WriteLine($"MillerRabin({H2:x}): {bIsPrime}\nBitCount: {BitCount(H2)}\n");
+			test_it(H2, true);
 
 		}
 
@@ -2381,6 +2386,7 @@ namespace RSABigInt
 			BigInteger p = clsMBI.RandPrime(3);		// 48-bits
 			BigInteger q = clsMBI.RandPrime(3);
 			BigInteger N = p * q;
+			Debug.Assert(!clsMBI.MillerRabin(N));		// should be composite
 
 			WriteLine($"{p} x {q} = {N}\n");
 			Debug.Assert( ((p * p + q * q) >> 1) % 4 == BigInteger.One );       // (p² + q²) / 2 = 1 (mod 4)
@@ -2389,8 +2395,8 @@ namespace RSABigInt
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne();
             //clsMBI.Mersenne2(23);
-            clsMBI.ModPow_Misc_Stuff();
-            //clsMBI.ModPow_Misc_Stuff2();
+            //clsMBI.ModPow_Misc_Stuff();
+            clsMBI.ModPow_Misc_Stuff2();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.PowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
