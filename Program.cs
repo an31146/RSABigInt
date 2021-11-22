@@ -1632,7 +1632,7 @@ namespace RSABigInt
 			}
 		}
 
-		private void Calculate_Factors(BigInteger N1)
+		private void Calculate_Factors(BigInteger N)
 		{
 			BigInteger P = BigInteger.Zero, Q = BigInteger.Zero;
 			Stopwatch sw = new Stopwatch();
@@ -1671,11 +1671,10 @@ namespace RSABigInt
 									Write("{0,5}^{1} ", factor_base[m], expos[m]);
 							WriteLine();
 #endif
-							BigInteger P1 = BigInteger.GreatestCommonDivisor(N1, sqrt_y - x);
-							if ( !(P1.IsOne || P1.Equals(N1)) )
+							P = BigInteger.GreatestCommonDivisor(N, sqrt_y - x);
+							if ( !(P.IsOne || P.Equals(N)) )
 							{
-								P = P1;
-								Q = N1 / P1;
+								Q = N / P;
 								throw new OperationCanceledException();
 							}
 						}
@@ -1693,12 +1692,12 @@ namespace RSABigInt
 			sw.Stop();
 			DateTime dt1 = DateTime.Now;
 #if DEBUG
-			WriteLine("\nCalculate_Factors({0})\nElapsed time: {1}", N1, FormatTimeSpan(sw.Elapsed));
+			WriteLine("\nCalculate_Factors({0})\nElapsed time: {1}", N, FormatTimeSpan(sw.Elapsed));
 			WriteLine($"dt1 - dt0 = {dt1.Subtract(dt0).TotalSeconds:F1} s\n");
 #endif
 		}   // CalculateFactors
 
-		private void Calculate_Factors_II(BigInteger N1)
+		private void Calculate_Factors_II(BigInteger N)
 		{
 			CancellationTokenSource cancellationSource = new CancellationTokenSource();
 			Stopwatch sw = new Stopwatch();
@@ -1733,10 +1732,10 @@ namespace RSABigInt
 							var sqrt_y = SquareRoot(y);
 							Debug.Assert(y.Equals(sqrt_y * sqrt_y));		// perfect square
 							y = x - sqrt_y;
-							BigInteger P = BigInteger.GreatestCommonDivisor(N1, y);
-							if ( !(P.IsOne || P.Equals(N1)) )
+							var P = BigInteger.GreatestCommonDivisor(N, y);
+							if ( !(P.IsOne || P.Equals(N)) )
 							{
-								BigInteger Q = N1 / P;
+								var Q = N / P;
 								WriteLine("\nTask ID #{0}\nFactors: {1}, {2}\n", Task.CurrentId, P, Q);
 								cancellationSource.Cancel();
 								throw new OperationCanceledException();
@@ -1757,7 +1756,7 @@ namespace RSABigInt
 
 			sw.Stop();
 #if DEBUG
-			WriteLine("Calculate_Factors_Task({0})\nElapsed time: {1}\n", N1, FormatTimeSpan(sw.Elapsed));
+			WriteLine("Calculate_Factors_Task({0})\nElapsed time: {1}\n", N, FormatTimeSpan(sw.Elapsed));
 #endif
 		}
 
