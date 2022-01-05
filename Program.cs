@@ -742,6 +742,65 @@ namespace RSABigInt
 			return seed.IsZero;
 		}
 
+		public Tuple<BigInteger, BigInteger> LucasSequence(BigInteger term, BigInteger P, BigInteger Q)
+        {
+			BigInteger U = 0, U2m = 1;
+			BigInteger V = 2, V2m = P;
+			BigInteger Q2m = Q << 1;
+			BigInteger D = P * P - 4 * Q;
+
+			//BigInteger U = P * U1 - Q * U0;
+			//BigInteger V = P * V1 - Q * V0;
+			string strBin = "0";
+			int total = (int)BigInteger.Log(term, 2);
+			for (int bits = 1; bits <= total; bits++)
+            {
+                U2m = U2m * V2m;
+                V2m = V2m * V2m - Q2m;
+
+				if (bits < total - 1)
+                {
+					Q *= Q;
+					Q2m = Q << 1;
+				}
+
+				int mask = 1 << bits;
+				if ((term & mask) != 0)
+                {
+					strBin = "1" + strBin;
+					//U = P * U1 - Q * U0;
+					//V = P * V1 - Q * V0;
+					BigInteger T1, T2, T3, T4;
+
+					T1 = U2m * V;
+					T2 = U * V2m;
+					T3 = V2m * V;
+					T4 = U2m * U;
+					T4 *= D;
+					U = T1 + T2;
+					U >>= 1;
+					V = T3 + T4;
+					V >>= 1;
+					// U_(m + n) = (U_m * V_n + U_n * V_m) / 2
+					// V_(m + n) = (V_m * V_n + D * U_m * U_n) / 2
+				}
+				else
+                {
+					strBin = "0" + strBin;
+                }
+				//term >>= 1;
+			}
+			return new Tuple<BigInteger, BigInteger>(U, V);
+        }
+
+		public bool StrongLucasSelfridge(BigInteger n)
+        {
+			WriteLine(LucasSequence(200, 1, -1).Item2);
+			WriteLine(LucasSequence(20, 1, -1).Item1);
+
+			return true;
+        }
+
 		// Use LucasLehmer to determine if 2^n-1 is prime
 		public void Mersenne2(int n)
 		{
@@ -923,6 +982,7 @@ namespace RSABigInt
 			
 			var P1a = BigInteger.Parse("2367495770217142995264827948666809233066409497699870112003149352380375124855230068487109373226251983");
 			test_it(P1a);
+			var _ = StrongLucasSelfridge(P1a);
 
 			var P2 = new BigInteger(new byte[] {
 				0x95, 0xe3, 0x5d, 0x14, 0xe5, 0x30, 0x1e, 0xbd,  0x76, 0x92, 0xa1, 0x26, 0xe7, 0xfa, 0xe2, 0xef,
