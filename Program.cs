@@ -742,11 +742,29 @@ namespace RSABigInt
 			return seed.IsZero;
 		}
 
-		public Tuple<BigInteger, BigInteger> LucasSequence(BigInteger term, BigInteger P, ref BigInteger Q, BigInteger N)
+		public Tuple<BigInteger, BigInteger> LucasSequence(int term, BigInteger P, BigInteger Q)
+		{
+			BigInteger U0 = 0, U1 = 1, U = U1;
+			BigInteger V0 = 2, V1 = P, V = V1;
+
+			for (int i = 1; i < term; i++)
+            {
+				U = P * U1 - Q * U0;
+				V = P * V1 - Q * V0;
+				U0 = U1;
+				V0 = V1;
+				U1 = U;
+				V1 = V;
+			}
+			return new Tuple<BigInteger, BigInteger>(U, V);
+		}
+
+		public Tuple<BigInteger, BigInteger, BigInteger> LucasSequence(BigInteger term, BigInteger P, BigInteger Q, BigInteger N)
         {
 			BigInteger U = 0, U2m = 1;
 			BigInteger V = 2, V2m = P;
 			BigInteger Q2m = Q << 1;
+			BigInteger Qkd = Q;
 			BigInteger D = P * P - 4 * Q;
 
 			if (!term.IsEven)
@@ -757,8 +775,8 @@ namespace RSABigInt
 			//BigInteger U = P * U1 - Q * U0;
 			//BigInteger V = P * V1 - Q * V0;
 			string strBin = (term.IsEven) ? "0" : "1";
-			int total = (int)BigInteger.Log(term, 2);
-			for (int bits = 1; bits <= total; bits++)
+			int total_bits = (int)BigInteger.Log(term, 2) + 1;
+			for (int bits = 1; bits < total_bits; bits++)
 			{
 				U2m = U2m * V2m;
 				V2m = V2m * V2m - Q2m;
@@ -768,15 +786,12 @@ namespace RSABigInt
 					V2m %= N;
 				}
 
-				//if (bits < total)
+				Q = Q * Q;
+				Q2m = Q << 1;
+				if (!N.IsZero)
 				{
-					Q = Q * Q;
-					Q2m = Q << 1;
-					if (!N.IsZero)
-					{
-						Q %= N;
-						Q2m %= N;
-					}
+					Q %= N;
+					Q2m %= N;
 				}
 
 				int mask = 1 << bits;
@@ -791,63 +806,87 @@ namespace RSABigInt
 					T2 = U * V2m;
 					T3 = V2m * V;
 					T4 = D * U2m * U;
+					
 					U = T1 + T2;
-					U >>= 1;
-					V = T3 + T4;
-					V >>= 1;
-					if (!N.IsZero)
+					if (!U.IsEven)
+						U += N;
+                    //bool isOdd = !U.IsEven;
+                    U >>= 1;
+                    //if (isOdd)
+                    //    U--;
+
+                    V = T3 + T4;
+					if (!V.IsEven)
+						V += N;
+                    //isOdd = !V.IsEven;
+                    V >>= 1;
+                    //if (isOdd)
+                    //    V--;
+                    // U_(m + n) = (U_m * V_n + U_n * V_m) / 2
+                    // V_(m + n) = (V_m * V_n + D * U_m * U_n) / 2
+                    if (!N.IsZero)
 					{
 						U %= N;
 						V %= N;
 					}
-					// U_(m + n) = (U_m * V_n + U_n * V_m) / 2
-					// V_(m + n) = (V_m * V_n + D * U_m * U_n) / 2
+					Qkd *= Q;
+					if (!N.IsZero)
+						Qkd %= N;
 				}
-				else
-				{
+				if (bits < total_bits - 1)
+                {
 					strBin = "0" + strBin;
 				}
 			}
-			return new Tuple<BigInteger, BigInteger>(U, V);
+			return new Tuple<BigInteger, BigInteger, BigInteger>(U, V, Qkd);
         }
 
 		public bool StrongLucasSelfridge(BigInteger n)
         {
 			BigInteger D = 5;
+			bool isPrime = false;
 			int sign = 1;
-			while (Legendre(D, n) != -1)
+			while (Legendre(sign * D, n) != -1)
             {
 				D += 2;
-				D *= sign;
 				sign = -sign;
             }
+			D *= sign;
 			BigInteger iQ = (1 - D) >> 2;
 
 			var Nplus1 = n + 1;
 			int s = 0;
 			while ((Nplus1 & 1).IsZero)
 			{
-				s++;
 				Nplus1 >>= 1;
+				s++;
 			}
+			//if (Nplus1 <= int.MaxValue)
+				var delta = LucasSequence(Nplus1, 1, iQ, n);
+			//else
+				//delta = LucasSequence((int)Nplus1, 1, -1);
+            var U = delta.Item1;
+			var V = delta.Item2;
+			var Qkd = delta.Item3;
 
-            var delta = LucasSequence(n + 1, 1, ref iQ, 0);
-            var U = delta.Item1 % n;
-			var V = delta.Item2 % n;
-
-			if (U.IsZero || V.IsZero)
+			isPrime = (U.IsZero || V.IsZero);
+			if (isPrime)
 				return true;
 
-			var TwoQ = iQ << 1;
+			var Q2kd = Qkd << 1;
 			for (int r = 1; r < s; r++)
 			{
-				V = V * V - TwoQ;
+				V = V * V - Q2kd;
 				V %= n;
-				if (V.IsZero) 
+				isPrime = V.IsZero;
+				if (isPrime)
 					return true;
 				/* Calculate Q^{d*2^r} for next r (final iteration irrelevant). */
-				TwoQ = (iQ * iQ) << 1;
-				TwoQ %= n;
+				if (r < (s - 1))
+				{
+					Qkd = Qkd * Qkd % n;
+					Q2kd = Qkd << 1;
+				}
 			}
 
 			return false;
@@ -1029,12 +1068,23 @@ namespace RSABigInt
 				else
 					WriteLine($"MillerRabin({N:x}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
 			}
+			void test_it2(BigInteger N, Func<BigInteger, bool> prtest, bool hex = false)
+            {
+				bool bIsPrime = prtest(N);
+				if (!hex)
+					WriteLine($"{prtest.Method.Name}({N}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
+				else
+					WriteLine($"{prtest.Method.Name}({N:x}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
+			}
 
 			var P1 = BigInteger.Parse("8949969815784082905285113653565030657117978813653332368993611264200624281180341263589905784897611545421273844719391941113720317582959695290277880367278839");
 			
 			var P1a = BigInteger.Parse("2367495770217142995264827948666809233066409497699870112003149352380375124855230068487109373226251983");
 			test_it(P1a);
-			var _ = StrongLucasSelfridge(BigInteger.Pow(10, 50) + 151);
+			test_it2(65537, StrongLucasSelfridge);
+			test_it2(Int32.MaxValue, StrongLucasSelfridge);
+			test_it2(1000000000000037UL, StrongLucasSelfridge);
+			test_it2(BigInteger.Pow(10, 50) + 151, StrongLucasSelfridge);
 
 			var P2 = new BigInteger(new byte[] {
 				0x95, 0xe3, 0x5d, 0x14, 0xe5, 0x30, 0x1e, 0xbd,  0x76, 0x92, 0xa1, 0x26, 0xe7, 0xfa, 0xe2, 0xef,
