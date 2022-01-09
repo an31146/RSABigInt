@@ -32,7 +32,7 @@ namespace RSABigInt
 		//private const uint ARRAY_SIZE = 0x166e0e21;
 		private const uint ARRAY_SIZE = 0x11000000;
 		private const uint LIMIT = 1000000;
-		private const int confidence = 15;
+		private const int CONFIDENCE = 5;
 
 		private Random _randObj;
 		private uint[] primes;               
@@ -165,44 +165,44 @@ namespace RSABigInt
 			}   // while (true)
 		}
 
-		public BigInteger RandPrime(int size, int conf = confidence)
+		public BigInteger RandPrime(int size)
 		{
-			BigInteger rnd = BigInteger.Zero;
-			BigInteger rem = BigInteger.Zero;
-			BigInteger a = new BigInteger(2);
+			BigInteger randBigInt = BigInteger.Zero;
+			BigInteger remainder = BigInteger.Zero;
+			BigInteger Base = new BigInteger(2);
 			Stopwatch sw = new Stopwatch();
 
 			sw.Start();
-			rnd = BigInteger.Zero;
+			randBigInt = BigInteger.Zero;
 			for (int i = 0; i < size; i++)
 			{
-				rnd <<= 16;
-				rnd |= _randObj.Next();
+				randBigInt <<= 16;
+				randBigInt |= _randObj.Next();
 			}
-			rnd |= 1;
-			rem = BigInteger.ModPow(a, rnd - 1, rnd);
+			randBigInt |= 1;
+			remainder = BigInteger.ModPow(Base, randBigInt - 1, randBigInt);
 
-			while (!rem.IsOne)
+			while (!remainder.IsOne)
 			{
-				rnd += 2;
-                rem = BigInteger.ModPow(a, rnd - 1, rnd);
+				randBigInt += 2;
+                remainder = BigInteger.ModPow(Base, randBigInt - 1, randBigInt);
             }
-			Debug.Assert(MillerRabin(rnd));
+			Debug.Assert(MillerRabin(randBigInt));
 			sw.Stop();
 #if DEBUG
 			WriteLine("RandPrime({0})\nElapsed time: {1}\n", size, FormatTimeSpan(sw.Elapsed));
 #endif
-			return rnd;
+			return randBigInt;
 		}
 
 		public BigInteger TwinPrime(int size)
 		{
 			BigInteger twin = RandPrime(size: size);
-			bool found = MillerRabin(twin, 2) && MillerRabin(twin + 2, 2);
+			bool found = MillerRabin(twin) && MillerRabin(twin + 2);
 			while (!found)
 			{
 				twin += 2;
-				found = MillerRabin(twin, 2) && MillerRabin(twin + 2, 2);
+				found = MillerRabin(twin) && MillerRabin(twin + 2);
 			}
 			
 			return twin;
@@ -214,10 +214,10 @@ namespace RSABigInt
 			bool found = false;
 			do
 			{
-				if (MillerRabin(triple, 2))
+				if (MillerRabin(triple))
 				{
-					found = (MillerRabin(triple + 2, 2) || MillerRabin(triple + 4, 2)) 
-							&& MillerRabin(triple + 6, 2);
+					found = (MillerRabin(triple + 2) || MillerRabin(triple + 4)) 
+							&& MillerRabin(triple + 6);
 				}
 
 				if (!found)
@@ -511,18 +511,15 @@ namespace RSABigInt
 			return S.IsOne;         // smooth number with prime bound in factor_base
 		}
 
-		public int Legendre(BigInteger n, BigInteger p)
+		public int Legendre(BigInteger N, BigInteger P)
 		{
-			BigInteger p_sub1, l;
+			// assumes P is an odd prime
+			var Psub1 = (P - 1) >> 1;
+			if (N.Sign == -1) N += P;
+			var isResidue = BigInteger.ModPow(N, Psub1, P);
 
-			// assumes p is an odd prime
-			p_sub1 = (p - 1) >> 1;
-			l = BigInteger.ModPow(n, p_sub1, p);
-
-			if (l == 1)
-				return 1;
-			if (l == 0)
-				return 0;
+			if (isResidue.IsZero || isResidue.IsOne)
+				return isResidue.IsZero ? 0 : 1;
 			else
 				return -1;
 		}
@@ -545,7 +542,7 @@ namespace RSABigInt
 				return -1;
 		}
 
-		public bool MillerRabin(BigInteger n, int k = confidence)
+		public bool MillerRabin(BigInteger n)
 		{
 			int[] base_primes = {
 				  2,   3,   5,   7,  11,  13,  17,  19,
@@ -570,10 +567,7 @@ namespace RSABigInt
 				r >>= 1;
 			}
 
-			if (k < 1) k = 1;
-			else if (k > 64) k = 64;
-
-			for (int round = 0; round < k; round++)
+			for (int round = 0; round < CONFIDENCE; round++)
 			{
 				BigInteger x = BigInteger.ModPow(base_primes[round], r, n);
 				if (x.IsOne || x == n - 1)
@@ -593,11 +587,11 @@ namespace RSABigInt
 		public void PrimeTriplet_Test()
 		{
 			for (BigInteger X = PrimeTriplet(10); ; X += 2)
-				if (MillerRabin(X, 2) && MillerRabin(X + 6, 2))
-					if (MillerRabin(X + 2, 2))
+				if (MillerRabin(X) && MillerRabin(X + 6))
+					if (MillerRabin(X + 2))
 						WriteLine("{0}\n{1}\n{2}\n", X.ToString(), (X + 2).ToString(), (X + 6).ToString());
 					else
-						if (MillerRabin(X + 4, 2))
+						if (MillerRabin(X + 4))
 							WriteLine("{0}\n{1}\n{2}\n", X.ToString(), (X + 4).ToString(), (X + 6).ToString());
 		}
 
@@ -675,7 +669,7 @@ namespace RSABigInt
 						}
 						f++; f %= 4;
 
-						if (MillerRabin(X, 3) && MillerRabin(X + 2, 3))
+						if (MillerRabin(X) && MillerRabin(X + 2))
 						{
 							//WriteLine("[{0} {1}]", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString());
 							print_time(writer);
@@ -778,6 +772,10 @@ namespace RSABigInt
 			int total_bits = (int)BigInteger.Log(term, 2) + 1;
 			for (int bits = 1; bits < total_bits; bits++)
 			{
+				//WriteLine($"bits: {bits}");
+				//WriteLine($"term: {term}\nU: {U}\nV: {V}\nU2m: {U2m}\nV2m: {V2m}\nQ: {Q}\nQ2m: {Q2m}\n");
+				//ReadKey();
+
 				U2m = U2m * V2m;
 				V2m = V2m * V2m - Q2m;
 				if (!N.IsZero)
@@ -838,7 +836,6 @@ namespace RSABigInt
 					Qkd *= Q;
 					if (!N.IsZero)
 						Qkd %= N;
-					//Debug.WriteLine($"U: {U}\tV: {V}\tQ2m: {Q2m}");
 				}
 				if (bits < total_bits - 1)
                 {
@@ -984,7 +981,7 @@ namespace RSABigInt
 
 		public void Sophie_Germain()
 		{
-			BigInteger p1 = RandPrime(29);
+			BigInteger SG_prime = RandPrime(29);
 			//p1 = BigInteger.Parse("2458660187856824879520595114870378250951431099288225378935017566800781119530503250246319150383200577" +
 			//                      "2239534362312959895639176940639315849312418626787213101575564785527284385424689741076546240829379542" + 
 			//                      "7379986300689878537402008701959350545403526654541127010835528445689532162313465868838686033876428021" +
@@ -992,11 +989,11 @@ namespace RSABigInt
 
 			for (int i = 0; i < 10; i++)
 			{
-				while ( !(MillerRabin(p1, 5) && MillerRabin(2 * p1 + 1, 5)) )
-					p1 += 2;
+				while ( !(MillerRabin(SG_prime) && MillerRabin(2 * SG_prime + 1)) )
+					SG_prime += 2;
 
-				WriteLine($"{p1}");
-				p1 += 2;
+				WriteLine($"{SG_prime}");
+				SG_prime += 2;
 			}
 			/*
 			for (int i = 0; i < primes.Length/2; i++)
@@ -1067,33 +1064,34 @@ namespace RSABigInt
 
 		public void ModPow_Misc_Stuff2()
 		{
-			void test_it(BigInteger N, bool hex = false)
+			void TestPrime(BigInteger N, Func<BigInteger, bool> primeTest, bool hex = false)
             {
-				bool bIsPrime = MillerRabin(N);
+				Stopwatch sw = new Stopwatch();
+
+				sw.Start(); 
+				bool bIsPrime = primeTest(N);
+				sw.Stop();
+
 				if (!hex)
-					WriteLine($"MillerRabin({N}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
+					WriteLine($"{primeTest.Method.Name}({N}): {bIsPrime}\n");
 				else
-					WriteLine($"MillerRabin({N:x}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
-			}
-			void test_it2(BigInteger N, Func<BigInteger, bool> prtest, bool hex = false)
-            {
-				bool bIsPrime = prtest(N);
-				if (!hex)
-					WriteLine($"{prtest.Method.Name}({N}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
-				else
-					WriteLine($"{prtest.Method.Name}({N:x}): {bIsPrime}\nBitCount: {BitCount(N)}\n");
+					WriteLine($"{primeTest.Method.Name}({N:x}): {bIsPrime}\n");
+				
+				WriteLine("BitCount: {0}\nElapsed time: {1}\n{2}\n", BitCount(N), FormatTimeSpan(sw.Elapsed), new string('-', 100));
 			}
 
+			goto LB1;
+			//test_it2(65537, StrongLucasSelfridge);
+			//test_it2(1000000007UL, StrongLucasSelfridge);
+			//test_it2(Int32.MaxValue, StrongLucasSelfridge);
+			//test_it2(4294967311UL, StrongLucasSelfridge);
+			TestPrime(1000000000039UL, StrongLucasSelfridge);
+			TestPrime(BigInteger.Pow(10, 50) + 151, StrongLucasSelfridge);
+
 			var P1 = BigInteger.Parse("8949969815784082905285113653565030657117978813653332368993611264200624281180341263589905784897611545421273844719391941113720317582959695290277880367278839");
-			
-			var P1a = BigInteger.Parse("2367495770217142995264827948666809233066409497699870112003149352380375124855230068487109373226251983");
-			test_it(P1a);
-            //test_it2(65537, StrongLucasSelfridge);
-            //test_it2(1000000007UL, StrongLucasSelfridge);
-            //test_it2(Int32.MaxValue, StrongLucasSelfridge);
-            //test_it2(4294967311UL, StrongLucasSelfridge);
-            test_it2(1000000000039UL, StrongLucasSelfridge);
-			test_it2(BigInteger.Pow(10, 50) + 151, StrongLucasSelfridge);
+			P1 = BigInteger.Parse("2367495770217142995264827948666809233066409497699870112003149352380375124855230068487109373226251983");
+			TestPrime(P1, MillerRabin);
+			TestPrime(P1, StrongLucasSelfridge);
 
 			var P2 = new BigInteger(new byte[] {
 				0x95, 0xe3, 0x5d, 0x14, 0xe5, 0x30, 0x1e, 0xbd,  0x76, 0x92, 0xa1, 0x26, 0xe7, 0xfa, 0xe2, 0xef,
@@ -1102,7 +1100,8 @@ namespace RSABigInt
 				0xa8, 0xd5, 0x0e, 0x0a, 0x81, 0xae, 0x16, 0x84,  0xb5, 0x08, 0x6b, 0xef, 0x68, 0x30, 0x01, 0xe7,
 				0x00
 			});
-			test_it(P2);
+			TestPrime(P2, MillerRabin);
+			TestPrime(P2, StrongLucasSelfridge);
 
 			var P3 = new BigInteger(new byte[] {
 				0x81, 0x3f, 0x9c, 0x81, 0x31, 0x78, 0x58, 0xa1,  0xcd, 0xbd, 0xdd, 0xdb, 0xc9, 0xa7, 0xb1, 0xcf,
@@ -1111,8 +1110,6 @@ namespace RSABigInt
 				0x71, 0xc7, 0x47, 0xe9, 0x44, 0x9d, 0x43, 0x1a,  0x86, 0x39, 0xf5, 0x2a, 0x9b, 0xe8, 0x07, 0xda,
 				0x00
 			});
-
-			/*
 			P3 = new BigInteger(new byte[] {
 				0x37, 0x61, 0x8c, 0x03, 0x96, 0xed, 0x2d, 0x2b,  0x59, 0x09, 0xea, 0xa7, 0xfd, 0x91, 0x95, 0x90, 
 				0x57, 0x34, 0x73, 0x82, 0x31, 0x31, 0x06, 0x8b,  0xa4, 0x03, 0xe7, 0x3b, 0x58, 0x10, 0xf4, 0x08, 
@@ -1120,7 +1117,7 @@ namespace RSABigInt
 				0x8d, 0xa1, 0x56, 0x98, 0x6b, 0x7a, 0x04, 0x81,  0xd3, 0x50, 0x39, 0xe7, 0x32, 0xfe, 0x01, 0xf3,
 				0x00
 			});
-
+			/*
 			P3 = new BigInteger(new byte[]
 			{
 				0x9d, 0x4e, 0x78, 0x54, 0x43, 0x1e, 0x1f, 0xc8,  0x71, 0x42, 0x71, 0xbe, 0xc3, 0x26, 0x9e, 0xbe, 
@@ -1130,25 +1127,23 @@ namespace RSABigInt
 				0x00
 			});
 			*/
-			test_it(P3);
+			TestPrime(P3, MillerRabin);
+			TestPrime(P3, StrongLucasSelfridge);
 
 			var P4d = new BigInteger(PseudoPrime4d());
-			test_it(P4d);
+			TestPrime(P4d, MillerRabin);
 
 			var P4c = new BigInteger(PseudoPrime4c());
-			test_it(P4c);
+			TestPrime(P4c, MillerRabin);
 
 			var P4b = new BigInteger(PseudoPrime4b());
-			test_it(P4b);
+			TestPrime(P4b, MillerRabin);
 
 			var P4a = new BigInteger(PseudoPrime4a());
-			test_it(P4a);
+			TestPrime(P4a, MillerRabin);
 
 			var P5 = new BigInteger(PseudoPrime5c());
-			test_it(P5);
-
-			var P7 = new BigInteger(PseudoPrime7());
-			test_it(P7, true);
+			TestPrime(P5, MillerRabin);
 
 			var H1 = BigInteger.Parse("4c9a210dd08a0452cc8b31cab00f80a7f870553859f43739920453ccfa5e0e37acf0a0e60c728799" +
 									   "a77fb60d325adf3bdcbeaa97670c5d29e24b917e49c3eaf0d7ccdb4afb479ced74a4c07a0028a860" +
@@ -1160,7 +1155,13 @@ namespace RSABigInt
 									   "4bc3495b0a6867824a5201d68a47b7482e53e0a87e1cde253b67ccba18e4aa7810bf2e42f677d71a" +
 									   "e2ae885131a0c43b777220158a38382b484be7c04fac0550a805f735acc372d3db09c495a5bbe9cc" +
 									   "ad31553e111bc66d2ae2d711728f8782ca7fa2c65e5b51e819a0b0780ddf587ef0963d4ec80a4bf9a571dd", NumberStyles.HexNumber);
-			test_it(H1, true);
+			TestPrime(H1, MillerRabin, true);
+			TestPrime(H1, StrongLucasSelfridge, true);
+
+		LB1:
+			var P7 = new BigInteger(PseudoPrime7());
+			TestPrime(P7, MillerRabin, true);
+			TestPrime(P7, StrongLucasSelfridge, true);
 
 			var H2 = BigInteger.Parse(
 				"16ebe06bfcb56920ca13179c1f17bf2b791f590741bb963e81b65c3b893cfed4010ff65dbfb27aa6146cd1fa248ad4af853ac583db9ae52194eaa7" +
@@ -1177,7 +1178,8 @@ namespace RSABigInt
 				"5a8c3c43d580e452d67f545b4ab737510f5f138b982064e66125c2028224c8844ec505fe8641d4f85e201d709e035e84118320baf9ad7071798902" +
 				"f11c14d76bb3e2b0f3ee795601e417ae14f49ea0cf9e5b086f0ff6b33699e316630d75ec9e7f1b429f84749e9424992ff6432367d27b4b2daffdb4" +
 				"60576f6915ae1eea17c1b18b892a9c78abed607b67d4f4edc2c79e274c5d275a3cb84144bea7fb", NumberStyles.HexNumber);
-			test_it(H2, true);
+			TestPrime(H2, MillerRabin, true);
+			TestPrime(H2, StrongLucasSelfridge, true);
 
 		}
 
