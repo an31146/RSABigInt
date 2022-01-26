@@ -4,19 +4,19 @@ namespace small_sieve
 {
     class Program
     {
-        const uint number_of_small_primes = 6541;
-        static uint[] small_primes = new uint[number_of_small_primes];
-        static uint[] small_sieve = new uint[1024];
-        static uint small_base;
+        const int number_of_small_primes = 6541;
+        static int[] small_primes = new int[number_of_small_primes];
+        static int[] small_sieve = new int[1024];
+        static int small_base;
 
         //
         // count the number of zeros
         //
-        static uint count_zero_bits(uint[] addr, uint size)
+        static int count_zero_bits(int[] addr, int size)
         {
-            uint[] data = new uint[256];
+            int[] data = new int[256];
             byte[] addr_bytes = new byte[4096];
-            uint i, j, k;
+            int i, j, k;
 
             if (data[1] == 0)
                 for (i = 0; i < 256; i++)
@@ -44,7 +44,7 @@ namespace small_sieve
 
         static void update_small_sieve()
         {
-            uint i, j;
+            int i, j;
 
             if (small_primes[0] == 0)
             { 
@@ -52,12 +52,12 @@ namespace small_sieve
                 for (j = 0; j < 1024; j++)
                     small_sieve[j] = 0;
                 for (i = 3; i < 256; i += 2)
-                    if ((small_sieve[i >> 6] & (1U << (int)((i >> 1) & 31))) == 0)
+                    if ((small_sieve[i >> 6] & (1 << ((i >> 1) & 31))) == 0)
                         for (j = (i * i) >> 1; j < 32768; j += i)
-                            small_sieve[j >> 5] |= 1U << (int)(j & 31);
+                            small_sieve[j >> 5] |= 1 << (j & 31);
                 j = 0;
                 for (i = 3; i < 65536; i += 2)
-                    if ((small_sieve[i >> 6] & (1U << (int)((i >> 1) & 31))) == 0)
+                    if ((small_sieve[i >> 6] & (1U << ((i >> 1) & 31))) == 0)
                         small_primes[j++] = i;
                 if (j != number_of_small_primes)
                     return; // this should never happen
@@ -80,12 +80,12 @@ namespace small_sieve
                         j += small_primes[i];
                 }
                 for (j = (j - small_base) >> 1; j < 32768; j += small_primes[i])
-                    small_sieve[j >> 5] |= 1U << (int)(j & 31);
+                    small_sieve[j >> 5] |= 1 << (j & 31);
             }
         }
         static void test_small_sieve()
         {
-            uint pc, i, j;
+            int pc, i, j;
 
             pc = 0;
             small_base = 0;
