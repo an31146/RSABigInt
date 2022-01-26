@@ -11,12 +11,13 @@ using System.Threading.Tasks;
 
 using static System.Console;
 
-#pragma warning disable IDE0008,IDE0011,IDE0055,IDE1006,IDE1005,IDE1017,CS0219,CS0168
+#pragma warning disable IDE0008,IDE0011,IDE0055,IDE1006,IDE1005,IDE1017,CS0219,CS0168,CS0162
 #pragma warning disable IDE0049,IDE0051,IDE0060 
 /*
  * IDE1006 Suppress Naming Rule Violation IDE1006
  * IDE1005 Delegate invocation can be simplified
  * IDE1017 Object initialization can be simplified
+ * CS0162  Unreachable code detected
  * CS0168  The variable 'var' is declared but never used.
  * CS0219  The variable 'variable' is assigned but its value is never used
  * IDE0008 Use explicit type
@@ -1023,19 +1024,19 @@ namespace RSABigInt
 			{
 				var T1 = BigInteger.Pow(new BigInteger(2), 1048576);        // 315653 digit number!
 				double LogT1 = BigInteger.Log10(T1);
+
+				//using (StreamWriter file1 = new StreamWriter("output.txt", false))
+				//{
+				//	file1.WriteLine(T1.ToString());
+				//}
 			}
 			sw.Stop();
 			WriteLine("T1 = BigInteger.Pow(2, 1048576) elapsed time: {0} ms\n", sw.ElapsedMilliseconds);       // ModPow time: 12453 ms
 
 			var T2 = (new BigInteger(1) << 9689) - 1;                       // Should be a Mersenne prime.
 			TestPrime(T2, MillerRabin);
-			Debug.Assert(MillerRabin(T2));
 			//WriteLine($"T2.Length: {BigInteger.Log10(T2):N0} digits\n");
             WriteLine($"T2.Length: {T2.ToString().Length:N0} digits\n");
-
-            //StreamWriter file1 = new StreamWriter("output.txt", false);
-            //file1.WriteLine(T1.ToString());
-            //file1.Close();
 
             BigInteger T3;
 			sw.Restart();
@@ -1045,7 +1046,23 @@ namespace RSABigInt
 			sw.Stop();
 
 			if (T3.IsOne)                                                                // This could take a few seconds!
-				WriteLine("ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));             // ModPow time: 12453 ms
+				WriteLine("T1.ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));             // ModPow time: 12453 ms
+
+			Org.BouncyCastle.Math.BigInteger BC3, BC2;
+			BC3 = Org.BouncyCastle.Math.BigInteger.One;
+			BC3 = BC3.ShiftLeft(9689);
+			BC3 = BC3.Subtract(Org.BouncyCastle.Math.BigInteger.One);
+			WriteLine($"BC3.Length: {BC3.ToString().Length:N0} digits\n");
+
+			BC2 = new Org.BouncyCastle.Math.BigInteger("257");
+			sw.Restart();
+			{
+				BC2.ModPow(BC3.Subtract(Org.BouncyCastle.Math.BigInteger.One), BC3);
+			}
+			sw.Stop();
+
+			if (T3.IsOne)                                                                // This could take a few seconds!
+				WriteLine("BC2.ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));             // ModPow time: 12453 ms
 
 			sw.Restart();
 			{
@@ -1212,21 +1229,21 @@ namespace RSABigInt
 		//***********************************************************************
 		public void PowTest(int rounds)
 		{
-			BigInteger x;
+			var nextPrime = primes.Last() + 2;
+			while (BigInteger.ModPow(2, nextPrime - 1, nextPrime) != 1)
+				nextPrime += 2;
+			Debug.Assert(MillerRabin(nextPrime));
+
+			var sw = new Stopwatch();
+			sw.Start();
 			for (int count = 3; count < rounds; count++)
 			{
 				Write("Round: {0}", count);
 
-				foreach (int p in primes)
-				// foreach(int p in new int[] {2, 3, 5, 7, 11, 13, 17} )
+				foreach (int p in primes.Where(p => p <= 10067))
 				{
-					if (p > 2000)
-						break;
-
 					BigInteger bigInt_p = new BigInteger(p);
-					x = BigInteger.Pow(bigInt_p, count);
-
-					//Console.WriteLine("\t{0}^{1} = {2}", p, count, x);
+					BigInteger x = BigInteger.Pow(bigInt_p, count);
 
 					if (count == 0 && x != new BigInteger(1))
 						throw new ArithmeticException("x.Pow(0) was not equal to 1.");
@@ -1236,14 +1253,49 @@ namespace RSABigInt
 						throw new ArithmeticException(String.Format("x mod {0} was not congruent to zero.", p));
 					if (p > 2 && (x % (p - 1) != 1))
 						throw new ArithmeticException(String.Format("p^{0} mod (p-1) was not congruent to one.", count));
-					if (BigInteger.GreatestCommonDivisor(x, new BigInteger(2017)) != 1)
-						throw new ArithmeticException("gcd(x, 2017) has common denominator > 1.");
+					if (BigInteger.GreatestCommonDivisor(x, nextPrime) != 1)
+						throw new ArithmeticException("gcd(x, nextPrime) has common denominator > 1.");
 
 				}
 				WriteLine(" <PASSED>.");
-				// Console.ReadLine();
-
 			}
+			sw.Stop();
+			WriteLine("\nElapsed time: {0}\n", FormatTimeSpan(sw.Elapsed));
+		}
+
+		public void BCPowTest(int rounds)
+		{
+			Org.BouncyCastle.Math.BigInteger nextPrime = new Org.BouncyCastle.Math.BigInteger(primes.Last().ToString());
+			nextPrime = nextPrime.NextProbablePrime();
+			Debug.Assert(MillerRabin(BigInteger.Parse(nextPrime.ToString())));
+
+			var sw = new Stopwatch();
+			sw.Start();
+			for (int count = 3; count < rounds; count++)
+			{
+				Write("Round: {0}", count);
+
+				foreach (int p in primes.Where(p => p <= 10067))
+				{
+					Org.BouncyCastle.Math.BigInteger bigInt_p = new Org.BouncyCastle.Math.BigInteger(p.ToString());
+					Org.BouncyCastle.Math.BigInteger x = bigInt_p.Pow(count);
+
+					if (count == 0 && x.IntValue != 1)
+						throw new ArithmeticException("x.Pow(0) was not equal to 1.");
+					if (count == 1 && x != bigInt_p)
+						throw new ArithmeticException("x.Pow(1) was not equal to x.");
+					if (count > 0 && x.Mod(bigInt_p).IntValue != 0)
+						throw new ArithmeticException(String.Format("x mod {0} was not congruent to zero.", p));
+					if (p > 2 && x.Mod(bigInt_p.Subtract(Org.BouncyCastle.Math.BigInteger.One)).IntValue != 1)
+						throw new ArithmeticException(String.Format("p^{0} mod (p-1) was not congruent to one.", count));
+					if (x.Gcd(nextPrime).IntValue != 1)
+						throw new ArithmeticException("gcd(x, nextPrime) has common denominator > 1.");
+
+				}
+				WriteLine(" <PASSED>.");
+			}
+			sw.Stop();
+			WriteLine("\nElapsed time: {0}\n", FormatTimeSpan(sw.Elapsed));
 		}
 
 		public void SqrtTest2(int rounds)
@@ -2591,9 +2643,9 @@ namespace RSABigInt
             //clsMBI.Mersenne();
             //clsMBI.Mersenne2(23);
             //clsMBI.ModPow_Misc_Stuff();
-            clsMBI.ModPow_Misc_Stuff2();
+            //clsMBI.ModPow_Misc_Stuff2();
             //clsMBI.Pollard_Rho_Test();
-            //clsMBI.PowTest(1000);
+            clsMBI.BCPowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
             //clsMBI.Sophie_Germain();
