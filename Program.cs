@@ -1033,10 +1033,11 @@ namespace RSABigInt
 			sw.Stop();
 			WriteLine("T1 = BigInteger.Pow(2, 1048576) elapsed time: {0} ms\n", sw.ElapsedMilliseconds);       // ModPow time: 12453 ms
 
-			var T2 = (new BigInteger(1) << 9689) - 1;                       // Should be a Mersenne prime.
+			var T2 = new BigInteger(1) << 9689;                                          // Should be a Mersenne prime.
+			T2 -= 1;
 			TestPrime(T2, MillerRabin);
-			//WriteLine($"T2.Length: {BigInteger.Log10(T2):N0} digits\n");
-            WriteLine($"T2.Length: {T2.ToString().Length:N0} digits\n");
+			WriteLine($"T2.Length: {Math.Ceiling(BigInteger.Log10(T2)):N0} digits\n");
+            //WriteLine($"T2.Length: {T2.ToString().Length:N0} digits\n");
 
             BigInteger T3;
 			sw.Restart();
@@ -1046,7 +1047,7 @@ namespace RSABigInt
 			sw.Stop();
 
 			if (T3.IsOne)                                                                // This could take a few seconds!
-				WriteLine("T1.ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));             // ModPow time: 12453 ms
+				WriteLine("T1.ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));          // ModPow time: 7.7 secs
 
 			Org.BouncyCastle.Math.BigInteger BC3, BC2;
 			BC3 = Org.BouncyCastle.Math.BigInteger.One;
@@ -1057,19 +1058,19 @@ namespace RSABigInt
 			BC2 = new Org.BouncyCastle.Math.BigInteger("257");
 			sw.Restart();
 			{
-				BC2.ModPow(BC3.Subtract(Org.BouncyCastle.Math.BigInteger.One), BC3);
+				BC2 = BC2.ModPow(BC3.Subtract(Org.BouncyCastle.Math.BigInteger.One), BC3);
 			}
 			sw.Stop();
 
-			if (T3.IsOne)                                                                // This could take a few seconds!
-				WriteLine("BC2.ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));             // ModPow time: 12453 ms
+			if (BC2.IntValue == 1)                                                       // This could take a few seconds!
+				WriteLine("BC2.ModPow time: {0}\n", FormatTimeSpan(sw.Elapsed));         // ModPow time: 2.8 secs
 
 			sw.Restart();
 			{
 				double LogT3 = BigInteger.Log10(T3);
 			}
 			sw.Stop();
-			WriteLine("Log10(T3) elapsed time: {0} ms\n", sw.ElapsedMilliseconds);                 // ModPow time: 12453 ms
+			WriteLine("Log10(T3) elapsed time: {0} ms\n", sw.ElapsedMilliseconds);       // Log10 time: 0 ms
 
 			string strNormalizedIntegerTwo = "2" + new String('0', 20000);
 			WriteLine("strNormalizedIntegerTwo.GetHashCode(): 0x{0:X}", strNormalizedIntegerTwo.GetHashCode());
@@ -2642,10 +2643,10 @@ namespace RSABigInt
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne();
             //clsMBI.Mersenne2(23);
-            //clsMBI.ModPow_Misc_Stuff();
+            clsMBI.ModPow_Misc_Stuff();
             //clsMBI.ModPow_Misc_Stuff2();
             //clsMBI.Pollard_Rho_Test();
-            clsMBI.BCPowTest(1000);
+            //clsMBI.BCPowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
             //clsMBI.Sophie_Germain();
