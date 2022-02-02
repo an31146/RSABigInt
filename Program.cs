@@ -1332,13 +1332,11 @@ namespace RSABigInt
 			for (int count = 0; count < rounds; count++)
 			{
 				BigInteger y = new BigInteger(count + 1);
-				for (int i = 0; i < 250; i++)
+				for (int i = 0; i < 500; i++)
 					y *= 1000000;
 
-				BigInteger x = Sqrt(y);
-				BigInteger z = (x + 1) * (x + 1);
-
-				//Write("Round: {0}", count);
+				BigInteger x = Sqrt(y) + 1;
+				BigInteger z = x * x;
 
 				// check that x is the largest integer such that x*x <= z
 				if (z <= y)
@@ -1350,6 +1348,7 @@ namespace RSABigInt
 			}
 			WriteLine("{0} rounds in #1 <PASSED>.", rounds);
 
+#if false
 			for (int count = 0; count < rounds; count++)
 			{
 				var p = RandPrime(12);
@@ -1368,6 +1367,27 @@ namespace RSABigInt
 					return;
 				}
 			}
+#else
+			for (int count = 0; count < rounds; count++)
+			{
+				var p = BCRandPrime(20);
+				var q = BCRandPrime(20);
+				var N = p.Multiply(q);
+				var phi = p.Subtract(Org.BouncyCastle.Math.BigInteger.One)
+					.Multiply(q.Subtract(Org.BouncyCastle.Math.BigInteger.One));
+
+				// check that x is the largest integer such that x*x <= z
+				var Ns = new BigInteger(N.ToByteArray().Reverse().ToArray());
+				BigInteger s = Sqrt(Ns) + 1;
+				var biN = new BigInteger(N.ToByteArray().Reverse().ToArray());
+				if (s * s <= biN)
+				{
+					WriteLine("\nError at round " + count);
+					WriteLine(s + "\n");
+					return;
+				}
+			}
+#endif
 			WriteLine("{0} rounds in #2 <PASSED>.", rounds);
 		}
 
@@ -2455,7 +2475,7 @@ namespace RSABigInt
 		public void Quadratic_Sieve(BigInteger N)
 		{
             //N = BigInteger.Parse("1152656570285234495703667671274025629");
-            #region _historical_timings
+#region _historical_timings
             //N = BigInteger.Parse("21818232425302600378616644247667406319");
             // 2495.8 s, 2620 primes
             // 7217.7 s, 2122 primes, 4244 smooth numbers
@@ -2597,7 +2617,7 @@ namespace RSABigInt
             //N = BigInteger.Parse("340282366920938463463374607431768211457");
 
             // "9251887165329150354056716315122396153271557067859755802728429989905317141127"
-            #endregion
+#endregion
             double logN = BigInteger.Log(N);
 			WriteLine("Log(N): {0:F12}", logN);
 
