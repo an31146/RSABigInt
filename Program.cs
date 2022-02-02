@@ -196,6 +196,37 @@ namespace RSABigInt
 			return randBigInt;
 		}
 
+		public Org.BouncyCastle.Math.BigInteger BCRandPrime(int size)
+		{
+			var randBigInt = Org.BouncyCastle.Math.BigInteger.Zero;
+			var remainder = Org.BouncyCastle.Math.BigInteger.Zero;
+			var Base = Org.BouncyCastle.Math.BigInteger.Two;
+			Stopwatch sw = new Stopwatch();
+
+			sw.Start();
+			randBigInt = Org.BouncyCastle.Math.BigInteger.Zero;
+			for (int i = 0; i < size; i++)
+			{
+				randBigInt = randBigInt.ShiftLeft(16);
+				var randBI = new Org.BouncyCastle.Math.BigInteger(_randObj.Next().ToString());
+				randBigInt = randBigInt.Or(randBI);
+			}
+			randBigInt = randBigInt.Or(Org.BouncyCastle.Math.BigInteger.One);
+			remainder = Base.ModPow(randBigInt.Subtract(Org.BouncyCastle.Math.BigInteger.One), randBigInt);
+
+			while (remainder.IntValue != 1)
+			{
+				randBigInt = randBigInt.Add(Org.BouncyCastle.Math.BigInteger.Two);
+				remainder = Base.ModPow(randBigInt.Subtract(Org.BouncyCastle.Math.BigInteger.One), randBigInt);
+			}
+			Debug.Assert(randBigInt.IsProbablePrime(CONFIDENCE));
+			sw.Stop();
+#if DEBUG
+			WriteLine("RandPrime({0})\nElapsed time: {1}\n", size, FormatTimeSpan(sw.Elapsed));
+#endif
+			return randBigInt;
+		}
+
 		public BigInteger TwinPrime(int size)
 		{
 			BigInteger twin = RandPrime(size: size);
@@ -1321,15 +1352,15 @@ namespace RSABigInt
 
 			for (int count = 0; count < rounds; count++)
 			{
-				BigInteger p = RandPrime(5);
-				BigInteger q = RandPrime(5);
-				BigInteger N = p * q;
-				BigInteger s = Sqrt(N) + 1;
-				BigInteger phi = (p - 1) * (q - 1);
-
-				//Write("Round: {0}", count);
+				var p = RandPrime(12);
+				var q = RandPrime(12);
+				var N = BigInteger.Multiply(p, q);
+				var phi = BigInteger.Multiply(
+					BigInteger.Subtract(p, BigInteger.One), 
+					BigInteger.Subtract(q, BigInteger.One));
 
 				// check that x is the largest integer such that x*x <= z
+				BigInteger s = Sqrt(N) + 1;
 				if (s * s <= N)
 				{
 					WriteLine("\nError at round " + count);
@@ -2632,7 +2663,7 @@ namespace RSABigInt
             //clsMBI.PrimeTriplet_Test();
             //clsMBI.Mersenne();
             //clsMBI.Mersenne2(23);
-            clsMBI.ModPow_Misc_Stuff();
+            //clsMBI.ModPow_Misc_Stuff();
             //clsMBI.PseudoPrimesTest();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.BCPowTest(1000);
@@ -2640,7 +2671,7 @@ namespace RSABigInt
             //clsMBI.RSA_Numbers();
             //clsMBI.Sophie_Germain();
             //clsMBI.Quadratic_Sieve(N);
-            //clsMBI.SqrtTest2(1000);
+            clsMBI.SqrtTest2(1000);
             //clsMBI.InverseModTest(1000);
 
             Write("\nPress Enter: ");
