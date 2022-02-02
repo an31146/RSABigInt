@@ -996,17 +996,6 @@ namespace RSABigInt
 				WriteLine($"{SG_prime}");
 				SG_prime += 2;
 			}
-			/*
-			for (int i = 0; i < primes.Length/2; i++)
-			{
-				foreach (uint q in primes)
-					if (2 * primes[i] + 1 == q)
-					{
-						Write($"{primes[i],8}");
-						break;
-					}
-			}
-			*/
 			WriteLine();
 		}
 
@@ -1098,7 +1087,7 @@ namespace RSABigInt
 			WriteLine("BitCount: {0}\nElapsed time: {1}\n{2}\n", BitCount(N), FormatTimeSpan(sw.Elapsed), new string('-', 100));
 		}
 
-		public void ModPow_Misc_Stuff2()
+		public void PseudoPrimesTest()
 		{
 			//test_it2(65537, StrongLucasSelfridge);
 			//test_it2(1000000007UL, StrongLucasSelfridge);
@@ -2644,7 +2633,7 @@ namespace RSABigInt
             //clsMBI.Mersenne();
             //clsMBI.Mersenne2(23);
             clsMBI.ModPow_Misc_Stuff();
-            //clsMBI.ModPow_Misc_Stuff2();
+            //clsMBI.PseudoPrimesTest();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.BCPowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
