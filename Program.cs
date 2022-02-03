@@ -222,7 +222,7 @@ namespace RSABigInt
 			Debug.Assert(randBigInt.IsProbablePrime(CONFIDENCE));
 			sw.Stop();
 #if DEBUG
-			WriteLine("RandPrime({0})\nElapsed time: {1}\n", size, FormatTimeSpan(sw.Elapsed));
+			WriteLine("BCRandPrime({0})\nElapsed time: {1}\n", size, FormatTimeSpan(sw.Elapsed));
 #endif
 			return randBigInt;
 		}
@@ -1013,21 +1013,32 @@ namespace RSABigInt
 
 		public void Sophie_Germain()
 		{
-			BigInteger SG_prime = RandPrime(29);
+			Stopwatch sw = new Stopwatch();
+			const int num = 10;
+			//BigInteger SG_prime = RandPrime(36);
+			var SG_prime = BCRandPrime(36);
 			//p1 = BigInteger.Parse("2458660187856824879520595114870378250951431099288225378935017566800781119530503250246319150383200577" +
 			//                      "2239534362312959895639176940639315849312418626787213101575564785527284385424689741076546240829379542" + 
 			//                      "7379986300689878537402008701959350545403526654541127010835528445689532162313465868838686033876428021" +
 			//                      "28584806281635941597546342162000054644591515119");
 
-			for (int i = 0; i < 10; i++)
+			WriteLine("Sophie_Germain()");
+			sw.Start();
+			for (int i = 0; i < num; i++)
 			{
-				while ( !(MillerRabin(SG_prime) && MillerRabin(2 * SG_prime + 1)) )
-					SG_prime += 2;
+                //while (!(MillerRabin(SG_prime) && MillerRabin(2 * SG_prime + 1)))
+                while ( !(SG_prime.IsProbablePrime(CONFIDENCE) && 
+                	SG_prime.Multiply(Org.BouncyCastle.Math.BigInteger.Two)
+                		.Add(Org.BouncyCastle.Math.BigInteger.One).IsProbablePrime(CONFIDENCE)))
+                    SG_prime = SG_prime.Add(Org.BouncyCastle.Math.BigInteger.Two);
+                    //SG_prime += 2;
 
 				WriteLine($"{SG_prime}");
-				SG_prime += 2;
+				SG_prime = SG_prime.Add(Org.BouncyCastle.Math.BigInteger.Two);
+				//SG_prime += 2;
 			}
-			WriteLine();
+			sw.Stop();
+			WriteLine($"Calculating {num} Sophie_Germain primes took {sw.Elapsed.TotalSeconds:F1} secs.");
 		}
 
 		public void ModPow_Misc_Stuff()
@@ -2689,9 +2700,9 @@ namespace RSABigInt
             //clsMBI.BCPowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
-            //clsMBI.Sophie_Germain();
+            clsMBI.Sophie_Germain();
             //clsMBI.Quadratic_Sieve(N);
-            clsMBI.SqrtTest2(1000);
+            //clsMBI.SqrtTest2(1000);
             //clsMBI.InverseModTest(1000);
 
             Write("\nPress Enter: ");
