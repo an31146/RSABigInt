@@ -880,7 +880,7 @@ namespace RSABigInt
 		public bool StrongLucasSelfridge(BigInteger n)
         {
 			int D = 5;
-			bool isPrime = false;
+			bool isPrime;
 			int sign = 1;
 			while (Legendre(sign * D, n) != -1)
             {
@@ -1150,15 +1150,27 @@ namespace RSABigInt
 			for (int i = 1012; i < 1022; i++)
 			{
 				var N = BigInteger.Pow(10, i) + 1;
-				while (!BigInteger.ModPow(2, N - 1, N).IsOne)
+				var bcN = new Org.BouncyCastle.Math.BigInteger(N.ToString());
+				N = BigInteger.Parse(bcN.NextProbablePrime().ToString());
+				bool isProbPrime = BigInteger.ModPow(2, N - 1, N).IsOne;
+				while (!isProbPrime)
+                {
 					N += 2;
+					if ((N % 5).IsZero)
+						N += 2;
+					isProbPrime = BigInteger.ModPow(2, N - 1, N).IsOne;
+				}
 				TestPrime(N, MillerRabin);
 				TestPrime(N, StrongLucasSelfridge);
 			}
 
-			TestPrime(BigInteger.Pow(10, 2008) + 453, MillerRabin);
-			TestPrime(BigInteger.Pow(10, 2008) + 453, StrongLucasSelfridge);
+			//TestPrime(BigInteger.Pow(10, 2008) + 453, MillerRabin);
+			//TestPrime(BigInteger.Pow(10, 2008) + 453, StrongLucasSelfridge);
 
+			TestPrime(BigInteger.Pow(10, 2841) + 9, MillerRabin);
+			TestPrime(BigInteger.Pow(10, 2841) + 9, StrongLucasSelfridge);
+
+			goto LB1;
 			var P1 = BigInteger.Parse("8949969815784082905285113653565030657117978813653332368993611264200624281180341263589905784897611545421273844719391941113720317582959695290277880367278839");
 			P1 = BigInteger.Parse("2367495770217142995264827948666809233066409497699870112003149352380375124855230068487109373226251983");
 			TestPrime(P1, MillerRabin);
@@ -1198,7 +1210,6 @@ namespace RSABigInt
 				0x00
 			});
 
-			goto LB1;
 			TestPrime(P3, MillerRabin);
 			TestPrime(P3, StrongLucasSelfridge);
 
@@ -1755,11 +1766,11 @@ namespace RSABigInt
 			long N = 87256236345731407L;
 			//N = 1537228672809129301L;
 			N = 1537228681399063897L;
-			N = 3074457386420448043L;
-			N = 4611686138686472687L;
-			//N = ulong.Parse("4607863703200169");
-			//N = ulong.Parse("373463523233483");
-			//N = ulong.Parse("135723676817");
+			//N = 3074457386420448043L;
+			//N = 4611686138686472687L;
+			//N = 4607863703200169L;
+			//N = 373463523233483L;
+			//N = 135723676817L;
 			//N = 21530071;
 			//N = 12546257;
 			const int a = 1;
@@ -2695,12 +2706,12 @@ namespace RSABigInt
             //clsMBI.Mersenne();
             //clsMBI.Mersenne2(23);
             //clsMBI.ModPow_Misc_Stuff();
-            //clsMBI.PseudoPrimesTest();
+            clsMBI.PseudoPrimesTest();
             //clsMBI.Pollard_Rho_Test();
             //clsMBI.BCPowTest(1000);
             //clsMBI.Print_Legendre_Table(29, 31);
             //clsMBI.RSA_Numbers();
-            clsMBI.Sophie_Germain();
+            //clsMBI.Sophie_Germain();
             //clsMBI.Quadratic_Sieve(N);
             //clsMBI.SqrtTest2(1000);
             //clsMBI.InverseModTest(1000);

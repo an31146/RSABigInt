@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 /segmented_sieve/segmented_sieve_v3/Properties/launchSettings.json
+*.dll
